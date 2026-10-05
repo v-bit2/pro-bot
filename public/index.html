@@ -153,7 +153,10 @@ pairBtn.addEventListener("click", async () => {
     if (!response.ok || !data.ok) throw new Error(data.error || "Pairing failed.");
 
     result.style.display = "block";
-    codeEl.textContent = data.code || "ALREADY LINKED";
+    const rawCode = data.code || "ALREADY LINKED";
+    codeEl.textContent = rawCode.length === 8
+      ? rawCode.slice(0, 4) + "-" + rawCode.slice(4)
+      : rawCode;
     statusEl.textContent = data.code === "ALREADY_LINKED"
       ? "This number is already connected."
       : "Your pairing code";
