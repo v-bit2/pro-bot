@@ -1,20 +1,21 @@
 export const command = {
   name: "owner",
-  description: "Show owner number",
-  async execute({ sock, message }) {
-    const owner = "263786624966";
-    const jid = `${owner}@s.whatsapp.net`;
+  aliases: ["creator", "developer"],
+  category: "GENERAL",
+  description: "Display owner contact information",
+  usage: ".owner",
+  async execute({ sock, message, config }) {
+    const ownerNumber = config.owner;
     await sock.sendMessage(
       message.key.remoteJid,
       {
         contacts: {
-          displayName: "Voltra Mini Owner",
+          displayName: `${config.name} Owner`,
           contacts: [{
-            vcard:
-`BEGIN:VCARD
+            vcard: `BEGIN:VCARD
 VERSION:3.0
-FN:Voltra Mini Owner
-TEL;type=CELL;type=VOICE;waid=${owner}:+${owner}
+FN:${config.name} Owner
+TEL;type=CELL;type=VOICE;waid=${ownerNumber}:+${ownerNumber}
 END:VCARD`
           }]
         }
