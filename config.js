@@ -1,9 +1,19 @@
 export default {
   name: "Voltra Mini",
-  owner: "263786624966",
-  prefix: ".",
+  owner: process.env.OWNER_NUMBER || "263786624966",
+  prefix: process.env.PREFIX || ".",
   port: Number(process.env.PORT || 3000),
   maxSessions: Number(process.env.MAX_SESSIONS || 10),
-  sessionDir: "./sessions",
-  publicBaseUrl: process.env.PUBLIC_BASE_URL || ""
+  sessionDir: process.env.SESSION_DIR || "./sessions",
+  publicBaseUrl: process.env.PUBLIC_BASE_URL || "",
+
+  // Keep-alive settings
+  keepAlive: process.env.KEEP_ALIVE === "true",
+  keepAliveUrl: process.env.KEEP_ALIVE_URL || "",
+  keepAliveInterval: Number(process.env.KEEP_ALIVE_INTERVAL || 300000), // 5 minutes default
+
+  // Typing & presence simulation settings
+  typingDelayMin: Number(process.env.TYPING_DELAY_MIN || 300),
+  typingDelayMax: Number(process.env.TYPING_DELAY_MAX || 2500),
+  typingMsPerChar: Number(process.env.TYPING_MS_PER_CHAR || 15)
 };
