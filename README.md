@@ -6,12 +6,17 @@ A high-performance, modular, multi-session WhatsApp MD bot powered by Node.js an
 
 ## 🌟 Key Features
 
-- **Baileys Pairing Code Authentication**: Simple pairing without QR code scanning.
-- **Multi-Session Support**: Run multiple WhatsApp accounts isolated in a single bot instance.
+- **Baileys Pairing Code Authentication**: Simple pairing with phone number without scanning QR codes.
+- **Multi-Session Support**: Run multiple WhatsApp accounts in an isolated single bot instance.
+- **Voltra Box Formatting**: Recognizable response layout (`┏▣ ◈ *VOLTRA MINI* ◈ ... ┗▣`).
+- **Bot Branding Image**: High-resolution dark energy/lightning logo included with `.menu` and bot responses.
 - **Self-Chat / "Note to Self" Support**: Full command execution when messaging your own WhatsApp chat.
 - **Human-like Presence**: Dynamic typing simulation before sending responses based on message length.
-- **Modular Command System**: Automatic loading of commands with error handling, categories, and aliases.
-- **Render Keep-Alive Support**: Integrated endpoint and ping worker to keep services alive on hosting platforms.
+- **Interactive Tic-Tac-Toe**: Fully playable 2-player Tic-Tac-Toe state engine.
+- **Textmaker Graphic Engine**: Generate styled graphics for 18 text themes (`.neon`, `.matrix`, `.fire`, `.glitch`, etc.).
+- **Persistent Settings Database**: Configurable owner settings (`.setprefix`, `.setbotname`, `.mode`, `.autotyping`, `.autoread`, `.autoreact`, `.setmenuimage`).
+- **Group Moderation**: Anti-link protection (`off`, `delete`, `warn`, `kick`), user warnings, custom welcome/goodbye messages.
+- **Render Keep-Alive Support**: Integrated endpoint and ping worker to prevent idle sleep on hosting platforms.
 - **Responsive Web UI**: Modern, mobile-first Web interface for pairing and monitoring active sessions.
 
 ---
@@ -71,7 +76,7 @@ You can configure Voltra Mini using environment variables or by editing `config.
 | Variable | Description | Default |
 | :--- | :--- | :--- |
 | `PORT` | Web server listening port | `3000` |
-| `PREFIX` | Command prefix symbol | `.` |
+| `PREFIX` | Initial command prefix symbol | `.` |
 | `OWNER_NUMBER` | Bot owner WhatsApp number (country code, no `+`) | `263786624966` |
 | `MAX_SESSIONS` | Maximum simultaneous WhatsApp sessions | `10` |
 | `SESSION_DIR` | Directory for storing session credentials | `./sessions` |
@@ -84,32 +89,71 @@ You can configure Voltra Mini using environment variables or by editing `config.
 
 ---
 
-## 🤖 Available Commands
+## 🤖 Command Suites & Categories
 
-All commands use the configurable prefix (default `.`).
+All commands use the configurable prefix (default `.`). Use `.menu <category>` to view specific categories.
 
 ### ⚡ General Commands
-- `.menu` / `.help` — Display categorized list of commands.
-- `.ping` — Measure network latency and process uptime.
-- `.alive` — Display online status, memory usage, runtime metrics, and Baileys version.
+- `.menu [category]` — Display categorized command list or specific category commands.
+- `.ping` — Measure network response latency and process uptime.
+- `.alive` — Display online status, system memory, Node/Baileys version, and branding image.
 - `.runtime` — Display formatted process uptime.
 - `.owner` — Send owner contact card.
 - `.about` — Overview of Voltra Mini features.
+- `.attp <text>` — Generate animated/colored text sticker.
+- `.crop` — Crop quoted/attached image into a 1:1 square.
+- `.getpp [@user]` — Get high-resolution profile picture of user/group.
+- `.github <user>` — Fetch GitHub profile details and stats.
+- `.groupstats` — Display member breakdown and creation date.
+- `.list` — Display compact list of categories and total command counts.
+- `.myactivity` — Show per-user command usage history and top used commands.
+- `.qr <text|url>` — Generate QR code image.
+- `.simage` — Convert WhatsApp sticker into a downloadable JPEG image.
+- `.ssweb <url>` — Render a screenshot of a webpage.
+- `.take <pack>|<author>` — Customize sticker metadata.
+- `.tts <text>` — Convert text to voice speech note.
+- `.viewonce` — Reveal view-once image/video media.
 
-### 🖥️ System Commands
-- `.system` — Display host OS, CPU core count, memory usage, and Node.js details.
+### 👥 Admin & Moderation Commands
+- `.antilink <off|delete|warn|kick>` — Configure link detection mode.
+- `.warn @user` — Issue a formal warning to a group member (kicks on 3/3).
+- `.resetwarn @user` — Reset warning count for a member.
+- `.welcome` — Toggle automatic welcome message for new members.
+- `.goodbye` — Toggle automatic goodbye message for leaving members.
+- `.setwelcome <text>` — Set custom welcome text with `{user}`, `{group}`, `{count}`.
+- `.setgoodbye <text>` — Set custom goodbye text with `{user}`, `{group}`.
+- `.hidetag <message>` — Send hidden mention message to all members.
+- `.mute` / `.unmute` — Mute/unmute group chat for non-admins.
+- `.kick @user` — Remove a member from the group.
+- `.promote @user` / `.demote @user` — Change admin status of a member.
+- `.tagall` / `.admins` — Mention all members or admins.
+- `.groupinfo` / `.groupstatus` — Display group metadata and moderation status.
+- `.grouplink` — Get group invite link.
+- `.delete` — Delete a quoted message in the group.
+- `.clean` — Clean up bot output buffer.
+- `.antiaudio` / `.antifile` / `.antisticker` / `.antivideo` — Toggle media filters.
 
-### 👥 Group Commands
-- `.tagall` — Mention all group members (`.tagall <message>`).
-- `.admins` — List and mention group administrators.
-- `.groupinfo` — Show group metadata, member count, creation date, and description.
-- `.mention` — Send an announcement mentioning all participants.
-- `.kick` — Remove mentioned user or quoted sender (Requires Bot Admin & User Admin).
-- `.promote` — Promote member to administrator (Requires Bot Admin & User Admin).
-- `.demote` — Demote administrator to member (Requires Bot Admin & User Admin).
+### 👑 Owner Commands
+- `.setprefix <prefix>` — Change and persist command prefix.
+- `.setbotname <name>` — Change and persist bot name.
+- `.setmenuimage` — Set custom bot/menu image by replying to an image.
+- `.mode <public|self|private>` — Set operating mode.
+- `.autotyping` / `.autoread` / `.autoreact` — Toggle automatic presence/read/reactions.
+- `.anticall` / `.antidelete` — Toggle anti-call / anti-delete protection settings.
+- `.block @user` / `.unblock @user` — Block/unblock users on WhatsApp.
+- `.broadcast <text>` — Send announcement to all joined groups.
+- `.restart` — Safely reboot bot process.
 
-### 🎨 Media Commands
-- `.sticker` / `.s` — Convert quoted or attached image, GIF, or video into a WhatsApp sticker.
+### 🎮 Fun & Games
+- `.tictactoe @user` — Play interactive 2-player Tic-Tac-Toe (`.ttt <1-9>` to make moves).
+- `.joke` / `.meme` / `.memesearch <sub` — Get jokes and trending memes.
+- `.compliment` / `.flirt` / `.insult` / `.dare` / `.truth` — Interactive party prompts.
+- `.gayrate` / `.ship` — Fun rate meters and love compatibility score.
+- `.bomb` / `.pies` — Fun interactive prompts.
+
+### 🎨 Textmaker Graphic Engine
+- `.<theme> <text>` — Generate styled text graphics for 18 themes:
+  `1917`, `arena`, `blackpink`, `devil`, `fire`, `glitch`, `hacker`, `ice`, `impressive`, `leaves`, `light`, `matrix`, `metallic`, `neon`, `purple`, `sand`, `snow`, `thunder`.
 
 ---
 
@@ -125,24 +169,12 @@ All commands use the configurable prefix (default `.`).
    - `KEEP_ALIVE_URL`: `https://your-app-name.onrender.com/api/health`
    - `KEEP_ALIVE_INTERVAL`: `300000`
 
-### 💡 Note on Free-Tier Hosting & Keep-Alive
-
-Application-level self-ping requests help prevent idle sleep on some cloud providers, but **they do not guarantee that hosting providers (such as Render) will keep free-tier instances awake indefinitely** if provider policies strictly enforce sleep periods after periods of inactivity or monthly quota limits.
-
 ---
 
 ## 🔒 Security & Session Isolation
 
-- **Authentication Data Security**: The `sessions/` directory contains sensitive WhatsApp security tokens. Never commit `sessions/` or expose session credentials through static routes or API endpoints.
+- **Authentication Security**: The `sessions/` directory contains sensitive WhatsApp security tokens. Never commit `sessions/` or expose session credentials through static routes or API endpoints.
 - **Session Isolation**: Each connected socket manages its own credentials, command execution context, and reconnection loop. Sessions cannot cross-talk or execute commands on behalf of other connected accounts.
-
----
-
-## 🔧 Troubleshooting
-
-- **Pairing code expires or fails**: Ensure the phone number includes the country code without leading `+` or zero. Ensure your server can reach WhatsApp Web servers.
-- **Bot doesn't respond in Self Chat**: Ensure your command prefix matches `PREFIX`.
-- **Media sticker conversion error**: Ensure input file is under 10MB and valid image/video format.
 
 ---
 
