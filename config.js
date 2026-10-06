@@ -7,6 +7,9 @@ export default {
   sessionDir: process.env.SESSION_DIR || "./sessions",
   publicBaseUrl: process.env.PUBLIC_BASE_URL || "",
 
+  // MongoDB Session Store URI
+  mongoUri: process.env.MONGO_URI || "",
+
   // Keep-alive settings
   keepAlive: process.env.KEEP_ALIVE === "true",
   keepAliveUrl: process.env.KEEP_ALIVE_URL || "",
