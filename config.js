@@ -1,5 +1,5 @@
-const defaultDbPass = process.env.DB_PASSWORD || process.env.MONGO_PASSWORD || "";
-const defaultMongo = `mongodb+srv://calyxdrey11:${defaultDbPass}@drey.qptc9q8.mongodb.net/?appName=Drey`;
+const dbPass = process.env.DB_PASSWORD || process.env.MONGO_PASSWORD || "";
+const defaultMongo = dbPass ? `mongodb+srv://calyxdrey11:${dbPass}@drey.qptc9q8.mongodb.net/?appName=Drey` : "";
 
 export default {
   name: "Voltra Mini",
