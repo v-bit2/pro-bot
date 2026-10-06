@@ -1,3 +1,6 @@
+const defaultDbPass = process.env.DB_PASSWORD || process.env.MONGO_PASSWORD || "";
+const defaultMongo = `mongodb+srv://calyxdrey11:${defaultDbPass}@drey.qptc9q8.mongodb.net/?appName=Drey`;
+
 export default {
   name: "Voltra Mini",
   owner: process.env.OWNER_NUMBER || "263786624966",
@@ -8,7 +11,7 @@ export default {
   publicBaseUrl: process.env.PUBLIC_BASE_URL || "",
 
   // MongoDB Session Store URI
-  mongoUri: process.env.MONGO_URI || "",
+  mongoUri: process.env.MONGO_URI || defaultMongo,
 
   // Keep-alive settings
   keepAlive: process.env.KEEP_ALIVE === "true",
