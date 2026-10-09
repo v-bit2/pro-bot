@@ -15,13 +15,13 @@ export const command = {
     const timeStr = `${hours}h ${mins}m ${secs}s`;
     const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false });
 
-    const content = `Bot Name    : ${settings.botName}
-Status      : Online 🟢
-Uptime      : ${timeStr}
-Memory      : ${memory} MB
-Node.js     : ${process.version}
-Baileys     : v7.0.0-rc14
-Current Time: ${currentTime}`;
+    const content = `✦ 🤖 *Bot:* ${settings.botName}
+✦ 🟢 *Status:* Online
+✦ ⏳ *Uptime:* ${timeStr}
+✦ 🧠 *Memory:* ${memory} MB
+✦ 💻 *Node.js:* ${process.version}
+✦ 📦 *Baileys:* v7.0.0-rc14
+✦ 🕒 *Current Time:* ${currentTime}`;
 
     await sendBotResponse(sock, remoteJid, {
       title: "VOLTRA ALIVE",

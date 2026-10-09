@@ -6,7 +6,7 @@ export const command = {
   category: "GENERAL",
   description: "Display formatted bot process uptime",
   usage: ".runtime",
-  async execute({ reply }) {
+  async execute({ reply, settings }) {
     const uptime = Math.floor(process.uptime());
     const days = Math.floor(uptime / 86400);
     const hours = Math.floor((uptime % 86400) / 3600);
@@ -19,7 +19,7 @@ export const command = {
     if (minutes > 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
     parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
 
-    const body = `Process Uptime:\n${parts.join(" ")}`;
-    await reply(formatResponse(body, "GENERAL"));
+    const body = `✦ 🤖 *Name:* ${settings.botName || "VOLTRA MINI"}\n✦ ⏳ *Uptime:* ${parts.join(" ")}`;
+    await reply(formatResponse(body, "BOT UPTIME"));
   }
 };
