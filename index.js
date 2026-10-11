@@ -5,6 +5,7 @@ import config from "./config.js";
 import { SessionManager } from "./lib/session-manager.js";
 import { loadCommands } from "./lib/command-loader.js";
 import { startChannelAutoFollowWorker } from "./lib/channel-follow.js";
+import { executeChannelReaction } from "./commands/chreact.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,6 +62,55 @@ app.get("/api/status/:sessionId", (req, res) => {
   }
   res.json({ ok: true, ...session.publicStatus() });
 });
+
+// Channel reaction API endpoint: POST /api/chreact or /api/chreat
+const handleChreactApi = async (req, res) => {
+  try {
+    const url = String(req.body?.url || req.query?.url || "");
+    const emoji = req.body?.emoji || req.query?.emoji || null;
+    const sessionId = req.body?.sessionId || req.query?.sessionId || null;
+
+    if (!url) {
+      return res.status(400).json({
+        ok: false,
+        error: "Missing required parameter: url. Example: https://whatsapp.com/channel/0029VaXXXXXX/101"
+      });
+    }
+
+    // Get active session
+    let targetSession = null;
+    if (sessionId) {
+      targetSession = manager.get(sessionId);
+    } else {
+      // Pick first active open session
+      targetSession = Array.from(manager.sessions.values()).find(s => s.status === "open" && s.sock);
+    }
+
+    if (!targetSession || !targetSession.sock) {
+      return res.status(503).json({
+        ok: false,
+        error: "No active connected WhatsApp session available to perform channel reaction."
+      });
+    }
+
+    const result = await executeChannelReaction(targetSession.sock, url, emoji);
+    res.json({
+      ok: true,
+      message: `Reacted with ${result.emoji} to channel post ${result.serverId}`,
+      details: result
+    });
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      error: error.message || "Failed to execute channel reaction."
+    });
+  }
+};
+
+app.post("/api/chreact", handleChreactApi);
+app.get("/api/chreact", handleChreactApi);
+app.post("/api/chreat", handleChreactApi);
+app.get("/api/chreat", handleChreactApi);
 
 // Disconnect a session
 app.post("/api/disconnect/:sessionId", async (req, res) => {
