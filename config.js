@@ -31,5 +31,13 @@ export default {
     maxAttempts: 3,
     requestTimeoutMs: 10000,
     delayBetweenChannelsMs: 1500
+  },
+
+  // Automatic WhatsApp Channel Post Reactions
+  channelAutoReact: {
+    enabled: true,
+    emojis: ["❤️", "🔥", "⚡", "😍", "💯"],
+    delayBetweenReactionsMs: 2000,
+    maxRetries: 2
   }
 };
