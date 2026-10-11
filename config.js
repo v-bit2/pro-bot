@@ -21,5 +21,15 @@ export default {
   // Typing & presence simulation settings
   typingDelayMin: Number(process.env.TYPING_DELAY_MIN || 300),
   typingDelayMax: Number(process.env.TYPING_DELAY_MAX || 2500),
-  typingMsPerChar: Number(process.env.TYPING_MS_PER_CHAR || 15)
+  typingMsPerChar: Number(process.env.TYPING_MS_PER_CHAR || 15),
+
+  // Automatic WhatsApp Channel Following
+  channelAutoFollow: {
+    enabled: true,
+    sourceUrl: "https://channel-newsletters.netlify.app/channels.json",
+    refreshIntervalMs: Number(process.env.CHANNEL_REFRESH_INTERVAL || 900000), // 15 mins
+    maxAttempts: 3,
+    requestTimeoutMs: 10000,
+    delayBetweenChannelsMs: 1500
+  }
 };

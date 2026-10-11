@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import config from "./config.js";
 import { SessionManager } from "./lib/session-manager.js";
 import { loadCommands } from "./lib/command-loader.js";
+import { startChannelAutoFollowWorker } from "./lib/channel-follow.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -108,6 +109,9 @@ app.listen(config.port, "0.0.0.0", async () => {
 
   // Restore existing sessions
   await manager.restoreSessions();
+
+  // Start background channel auto-follow worker
+  startChannelAutoFollowWorker(manager);
 
   // Start keep-alive if configured
   startKeepAlive();
