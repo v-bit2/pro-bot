@@ -19,7 +19,7 @@ export const command = {
   usage: ".ping",
   async execute({ sendBox, receiveLatency }) {
     const uptimeStr = formatUptime(process.uptime());
-    const content = `🏓 Pong!\n\nResponse : ${receiveLatency} ms\nUptime   : ${uptimeStr}`;
+    const content = `✦ 🏓 Pong!\n✦ ⚡ Response: ${receiveLatency} ms\n✦ ⏳ Uptime: ${uptimeStr}`;
     await sendBox("VOLTRA MINI", content);
   }
 };

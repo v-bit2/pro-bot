@@ -13,14 +13,13 @@ export const command = {
     const admins = participants.filter(p => p.admin === "admin" || p.admin === "superadmin");
     const creationDate = meta.creation ? new Date(meta.creation * 1000).toLocaleDateString() : "Unknown";
 
-    const body = `Name: ${meta.subject}
-Group ID: ${meta.id}
-Members: ${participants.length}
-Admins: ${admins.length}
-Created: ${creationDate}
-Description:
-${meta.desc ? meta.desc.toString() : "No description"}`;
+    const body = `✦ 👥 *Name:* ${meta.subject}
+✦ 🆔 *Group ID:* ${meta.id}
+✦ 👥 *Members:* ${participants.length}
+✦ 🛡️ *Admins:* ${admins.length}
+✦ 📅 *Created:* ${creationDate}
+✦ 📝 *Description:* ${meta.desc ? meta.desc.toString() : "No description"}`;
 
-    await reply(formatResponse(body, "GROUP"));
+    await reply(formatResponse(body, "GROUP INFO"));
   }
 };

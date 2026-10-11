@@ -1,8 +1,9 @@
+import { generateSpeechOgg } from "../lib/tts.js";
 import { formatError } from "../lib/format.js";
 
 export const command = {
   name: "tts",
-  aliases: ["say", "speech"],
+  aliases: ["speech"],
   category: "GENERAL",
   description: "Convert text to audio speech voice note",
   usage: ".tts <text>",
@@ -12,15 +13,19 @@ export const command = {
       return;
     }
 
-    const textStr = args.join(" ");
-    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=${encodeURIComponent(textStr)}&tl=en`;
+    const textToSpeak = args.join(" ");
 
     try {
-      await sock.sendMessage(remoteJid, {
-        audio: { url: ttsUrl },
-        mimetype: "audio/mp4",
-        ptt: true
-      }, { quoted: message });
+      const oggBuffer = await generateSpeechOgg(textToSpeak);
+      await sock.sendMessage(
+        remoteJid,
+        {
+          audio: oggBuffer,
+          mimetype: "audio/ogg; codecs=opus",
+          ptt: true
+        },
+        { quoted: message }
+      );
     } catch (err) {
       await reply(formatError(`Failed to convert text to speech: ${err.message}`));
     }
