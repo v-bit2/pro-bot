@@ -6,7 +6,7 @@ export const command = {
   category: "OWNER",
   description: "Safely restart the bot process",
   usage: ".restart",
-  ownerOnly: true,
+  devOnly: true,
   async execute({ reply }) {
     await reply(formatSuccess("Restarting Voltra Mini process..."));
     setTimeout(() => {

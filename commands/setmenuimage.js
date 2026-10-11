@@ -10,7 +10,7 @@ export const command = {
   category: "OWNER",
   description: "Set custom image used in .menu and bot responses by replying to an image",
   usage: ".setmenuimage (reply to an image)",
-  ownerOnly: true,
+  devOnly: true,
   async execute({ sock, message, reply }) {
     const quoted = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
     const imageMsg = message.message?.imageMessage || quoted?.imageMessage;

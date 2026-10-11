@@ -7,7 +7,7 @@ export const command = {
   category: "OWNER",
   description: "Change the command prefix symbol and persist it",
   usage: ".setprefix <new_prefix>",
-  ownerOnly: true,
+  devOnly: true,
   async execute({ args, reply }) {
     if (args.length === 0) {
       await reply(formatError("Please specify a new prefix, e.g. .setprefix !"));
