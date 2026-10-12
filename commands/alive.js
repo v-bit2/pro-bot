@@ -27,7 +27,8 @@ export const command = {
       title: "VOLTRA ALIVE",
       content,
       image: true,
-      quoted: message
+      quoted: message,
+      forwarded: true
     });
   }
 };

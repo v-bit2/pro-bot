@@ -34,7 +34,8 @@ export const command = {
       await sendBotResponse(sock, remoteJid, {
         content: chunkText,
         image: i === 0, // Attach landscape bot image on first menu chunk
-        quoted: message
+        quoted: message,
+        forwarded: true
       });
     }
   }

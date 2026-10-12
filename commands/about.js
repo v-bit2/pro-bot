@@ -18,6 +18,6 @@ Features:
 • Group management suite
 • Render hosting keep-alive support`;
 
-    await reply(formatResponse(body, "GENERAL"));
+    await reply(formatResponse(body, "GENERAL"), { forwarded: true });
   }
 };

@@ -20,6 +20,6 @@ export const command = {
     parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
 
     const body = `✦ 🤖 *Name:* ${settings.botName || "VOLTRA MINI"}\n✦ ⏳ *Uptime:* ${parts.join(" ")}`;
-    await reply(formatResponse(body, "BOT UPTIME"));
+    await reply(formatResponse(body, "BOT UPTIME"), { forwarded: true });
   }
 };

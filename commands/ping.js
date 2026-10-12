@@ -20,6 +20,6 @@ export const command = {
   async execute({ sendBox, receiveLatency }) {
     const uptimeStr = formatUptime(process.uptime());
     const content = `✦ 🏓 Pong!\n✦ ⚡ Response: ${receiveLatency} ms\n✦ ⏳ Uptime: ${uptimeStr}`;
-    await sendBox("VOLTRA MINI", content);
+    await sendBox("VOLTRA MINI", content, { forwarded: true });
   }
 };
