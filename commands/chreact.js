@@ -108,11 +108,7 @@ export const command = {
     }
 
     if (successCount > 0) {
-      let msg = `Successfully reacted with ${lastResult.emoji} to channel post *${lastResult.serverId}* across *${successCount}/${activeSockets.length}* connected session(s)!`;
-      if (failCount > 0) {
-        msg += `\n\n⚠️ ${failCount} session(s) failed.`;
-      }
-      await reply(formatSuccess(msg));
+      await reply(formatSuccess(`${successCount} Channel Reactions Successfully Sent ✅️`));
     } else {
       await reply(formatError(`Failed to react across all sessions:\n${errors.join("\n")}`));
     }

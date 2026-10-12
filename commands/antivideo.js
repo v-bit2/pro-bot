@@ -1,5 +1,5 @@
 import { updateGroupSettings, getGroupSettings } from "../lib/db.js";
-import { formatSuccess } from "../lib/format.js";
+import { formatBox, formatSuccess } from "../lib/format.js";
 
 export const command = {
   name: "antivideo",
@@ -24,6 +24,6 @@ export const command = {
     }
 
     updateGroupSettings(remoteJid, { antivideo: next });
-    await reply(formatSuccess(`Anti-Video filter is now *${next ? "ENABLED" : "DISABLED"}*`));
+    await reply(formatBox("ANTI-VIDEO", next ? "Antivideo Enabled ✅️" : "Antivideo Disabled ❌️"));
   }
 };

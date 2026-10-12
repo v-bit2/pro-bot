@@ -1,5 +1,5 @@
 import { updateGroupSettings, getGroupSettings } from "../lib/db.js";
-import { formatSuccess } from "../lib/format.js";
+import { formatBox, formatSuccess } from "../lib/format.js";
 
 export const command = {
   name: "antisticker",
@@ -24,6 +24,6 @@ export const command = {
     }
 
     updateGroupSettings(remoteJid, { antisticker: next });
-    await reply(formatSuccess(`Anti-Sticker filter is now *${next ? "ENABLED" : "DISABLED"}*`));
+    await reply(formatBox("ANTI-STICKER", next ? "Antisticker Enabled ✅️" : "Antisticker Disabled ❌️"));
   }
 };

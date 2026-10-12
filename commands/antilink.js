@@ -1,5 +1,5 @@
 import { updateGroupSettings, getGroupSettings } from "../lib/db.js";
-import { formatSuccess, formatError } from "../lib/format.js";
+import { formatBox, formatSuccess, formatError } from "../lib/format.js";
 
 export const command = {
   name: "antilink",
@@ -26,6 +26,10 @@ export const command = {
     }
 
     updateGroupSettings(remoteJid, { antilink: mode });
-    await reply(formatSuccess(`Anti-Link protection mode set to: *${mode.toUpperCase()}*`));
+    if (mode === "off") {
+      await reply(formatBox("ANTI-LINK", "Antilink Disabled ❌️"));
+    } else {
+      await reply(formatBox("ANTI-LINK", `Antilink Enabled (${mode.toUpperCase()}) ✅️`));
+    }
   }
 };

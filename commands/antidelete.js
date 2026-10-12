@@ -1,5 +1,5 @@
 import { updateSessionSettings, getSessionSettings, updateSettings } from "../lib/db.js";
-import { formatSuccess } from "../lib/format.js";
+import { formatBox, formatSuccess } from "../lib/format.js";
 
 export const command = {
   name: "antidelete",
@@ -27,6 +27,6 @@ export const command = {
     updateSessionSettings(sessionId, { antiDelete: next });
     updateSettings({ antiDelete: next });
 
-    await reply(formatSuccess(`Anti-Delete protection is now *${next ? "ENABLED" : "DISABLED"}*`));
+    await reply(formatBox("ANTI-DELETE", next ? "Antidelete Enabled ✅️" : "Antidelete Disabled ❌️"));
   }
 };

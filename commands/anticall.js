@@ -1,5 +1,5 @@
 import { updateSessionSettings, getSessionSettings, updateSettings } from "../lib/db.js";
-import { formatSuccess, formatError } from "../lib/format.js";
+import { formatBox, formatSuccess, formatError } from "../lib/format.js";
 
 export const command = {
   name: "anticall",
@@ -30,11 +30,10 @@ export const command = {
     updateSessionSettings(sessionId, { antiCall: mode });
     updateSettings({ antiCall: mode !== "off" });
 
-    let statusText = "";
-    if (mode === "on") statusText = "ON (Reject calls automatically)";
-    else if (mode === "block") statusText = "BLOCK (Reject calls & block callers)";
-    else statusText = "OFF (Disabled)";
-
-    await reply(formatSuccess(`Anti-Call protection mode set to: *${statusText}*`));
+    if (mode === "off") {
+      await reply(formatBox("ANTI-CALL", "Anticall Disabled ❌️"));
+    } else {
+      await reply(formatBox("ANTI-CALL", `Anticall Enabled (${mode.toUpperCase()}) ✅️`));
+    }
   }
 };

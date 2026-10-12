@@ -46,19 +46,7 @@ export const command = {
       }
 
       const newsletterJid = meta.id.endsWith("@newsletter") ? meta.id : `${meta.id}@newsletter`;
-      const name = meta.name || meta.title || "Unknown Channel";
-      const subscribers = meta.subscribers || meta.subscribersCount || "N/A";
-      const description = meta.description || meta.caption || "No description provided.";
-
-      const body =
-        `📢 *CHANNEL JID INFO*\n\n` +
-        `✦ *Name:* ${name}\n` +
-        `✦ *Newsletter JID:* \`${newsletterJid}\`\n` +
-        `✦ *Invite Code:* ${inviteCode}\n` +
-        `✦ *Subscribers:* ${subscribers}\n` +
-        `✦ *Description:* ${description}`;
-
-      await reply(formatResponse(body, "VOLTRA CHANNEL"));
+      await sock.sendMessage(message.key.remoteJid, { text: newsletterJid }, { quoted: message });
     } catch (err) {
       console.error("[JID Command] Error fetching channel metadata:", err);
       await reply(formatError(`Failed to fetch channel JID: ${err.message || err}`));
