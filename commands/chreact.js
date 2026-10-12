@@ -67,7 +67,7 @@ export async function executeChannelReaction(sock, urlInput, customEmoji = null)
 export const command = {
   name: "chreact",
   aliases: ["chreat", "channelreact", "reactch"],
-  category: "OWNER",
+  category: "CHANNEL",
   description: "React to a specific WhatsApp Channel post by URL across all active sessions",
   usage: ".chreact <channel_post_url> [emoji]",
   ownerOnly: true,

@@ -26,7 +26,7 @@ function parsePollUrl(urlStr) {
 export const command = {
   name: "pollvt",
   aliases: ["channelpollvote", "pollvote"],
-  category: "OWNER",
+  category: "CHANNEL",
   description: "Vote in a WhatsApp Channel poll URL",
   usage: ".pollvt <poll_url> <option_number_or_text>",
   ownerOnly: true,
