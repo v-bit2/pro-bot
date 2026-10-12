@@ -11,18 +11,21 @@ export const command = {
   adminOnly: true,
   async execute({ reply, args, remoteJid }) {
     if (args.length === 0) {
-      const current = getGroupSettings(remoteJid).antilink;
-      await reply(formatSuccess(`Current Anti-Link mode: *${current.toUpperCase()}*\n\nUsage: .antilink <off|delete|warn|kick>`));
+      const current = getGroupSettings(remoteJid).antilink || "off";
+      await reply(formatSuccess(`Current Anti-Link mode: *${current.toUpperCase()}*\n\nUsage:\n.antilink on (or delete)\n.antilink warn\n.antilink kick\n.antilink off`));
       return;
     }
 
-    const mode = args[0].toLowerCase();
+    let mode = args[0].toLowerCase();
+    if (mode === "on" || mode === "enable") mode = "delete";
+    if (mode === "disable") mode = "off";
+
     if (!["off", "delete", "warn", "kick"].includes(mode)) {
-      await reply(formatError("Invalid mode. Choose: off, delete, warn, or kick."));
+      await reply(formatError("Invalid mode. Choose: on, delete, warn, kick, or off."));
       return;
     }
 
     updateGroupSettings(remoteJid, { antilink: mode });
-    await reply(formatSuccess(`Anti-Link mode set to: *${mode.toUpperCase()}*`));
+    await reply(formatSuccess(`Anti-Link protection mode set to: *${mode.toUpperCase()}*`));
   }
 };

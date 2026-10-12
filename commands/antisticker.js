@@ -8,9 +8,21 @@ export const command = {
   usage: ".antisticker",
   groupOnly: true,
   adminOnly: true,
-  async execute({ reply, remoteJid }) {
-    const current = getGroupSettings(remoteJid).antisticker;
-    const next = !current;
+  async execute({ reply, args, remoteJid }) {
+    const current = Boolean(getGroupSettings(remoteJid).antisticker);
+    if (args.length === 0) {
+      await reply(formatSuccess(`Current Anti-Sticker status: *${current ? "ENABLED" : "DISABLED"}*\n\nUsage: .antisticker <on|off>`));
+      return;
+    }
+
+    const input = args[0].toLowerCase();
+    let next = current;
+    if (["on", "enable", "true", "1"].includes(input)) next = true;
+    else if (["off", "disable", "false", "0"].includes(input)) next = false;
+    else {
+      next = !current;
+    }
+
     updateGroupSettings(remoteJid, { antisticker: next });
     await reply(formatSuccess(`Anti-Sticker filter is now *${next ? "ENABLED" : "DISABLED"}*`));
   }

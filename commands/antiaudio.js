@@ -8,9 +8,21 @@ export const command = {
   usage: ".antiaudio",
   groupOnly: true,
   adminOnly: true,
-  async execute({ reply, remoteJid }) {
-    const current = getGroupSettings(remoteJid).antiaudio;
-    const next = !current;
+  async execute({ reply, args, remoteJid }) {
+    const current = Boolean(getGroupSettings(remoteJid).antiaudio);
+    if (args.length === 0) {
+      await reply(formatSuccess(`Current Anti-Audio status: *${current ? "ENABLED" : "DISABLED"}*\n\nUsage: .antiaudio <on|off>`));
+      return;
+    }
+
+    const input = args[0].toLowerCase();
+    let next = current;
+    if (["on", "enable", "true", "1"].includes(input)) next = true;
+    else if (["off", "disable", "false", "0"].includes(input)) next = false;
+    else {
+      next = !current;
+    }
+
     updateGroupSettings(remoteJid, { antiaudio: next });
     await reply(formatSuccess(`Anti-Audio filter is now *${next ? "ENABLED" : "DISABLED"}*`));
   }
