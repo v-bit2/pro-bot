@@ -68,10 +68,10 @@ export const command = {
   name: "chreact",
   aliases: ["chreat", "channelreact", "reactch"],
   category: "OWNER",
-  description: "React to a specific WhatsApp Channel post by URL",
+  description: "React to a specific WhatsApp Channel post by URL across all active sessions",
   usage: ".chreact <channel_post_url> [emoji]",
   ownerOnly: true,
-  async execute({ sock, args, reply }) {
+  async execute({ sock, args, reply, sessionManager }) {
     if (args.length === 0) {
       await reply(formatError("Usage: .chreact <channel_post_url> [emoji]\nExample: .chreact https://whatsapp.com/channel/0029VaXXXXXX/101 🔥"));
       return;
@@ -80,11 +80,41 @@ export const command = {
     const urlInput = args[0].trim();
     const emojiInput = args[1] ? args[1].trim() : null;
 
-    try {
-      const res = await executeChannelReaction(sock, urlInput, emojiInput);
-      await reply(formatSuccess(`Successfully reacted with ${res.emoji} to channel post *${res.serverId}* (${res.newsletterJid})!`));
-    } catch (err) {
-      await reply(formatError(`Failed to react to channel post: ${err.message || err}`));
+    // Collect all active sessions
+    let activeSockets = [];
+    if (sessionManager && typeof sessionManager.getConnectedSessions === "function") {
+      const sessions = sessionManager.getConnectedSessions();
+      activeSockets = sessions.map(s => ({ id: s.id, sock: s.sock })).filter(s => s.sock);
+    }
+
+    if (activeSockets.length === 0) {
+      activeSockets = [{ id: "current", sock }];
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+    let lastResult = null;
+    let errors = [];
+
+    for (const sItem of activeSockets) {
+      try {
+        const res = await executeChannelReaction(sItem.sock, urlInput, emojiInput);
+        lastResult = res;
+        successCount++;
+      } catch (err) {
+        failCount++;
+        errors.push(`${sItem.id}: ${err.message || err}`);
+      }
+    }
+
+    if (successCount > 0) {
+      let msg = `Successfully reacted with ${lastResult.emoji} to channel post *${lastResult.serverId}* across *${successCount}/${activeSockets.length}* connected session(s)!`;
+      if (failCount > 0) {
+        msg += `\n\n⚠️ ${failCount} session(s) failed.`;
+      }
+      await reply(formatSuccess(msg));
+    } else {
+      await reply(formatError(`Failed to react across all sessions:\n${errors.join("\n")}`));
     }
   }
 };

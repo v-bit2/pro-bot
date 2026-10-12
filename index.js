@@ -77,28 +77,53 @@ const handleChreactApi = async (req, res) => {
       });
     }
 
-    // Get active session
-    let targetSession = null;
+    let targetSessions = [];
     if (sessionId) {
-      targetSession = manager.get(sessionId);
+      const s = manager.get(sessionId);
+      if (s && s.sock) targetSessions.push(s);
     } else {
-      // Pick first active open session
-      targetSession = Array.from(manager.sessions.values()).find(s => s.status === "open" && s.sock);
+      targetSessions = manager.getConnectedSessions();
     }
 
-    if (!targetSession || !targetSession.sock) {
+    if (targetSessions.length === 0) {
       return res.status(503).json({
         ok: false,
         error: "No active connected WhatsApp session available to perform channel reaction."
       });
     }
 
-    const result = await executeChannelReaction(targetSession.sock, url, emoji);
-    res.json({
-      ok: true,
-      message: `Reacted with ${result.emoji} to channel post ${result.serverId}`,
-      details: result
-    });
+    let successCount = 0;
+    let failCount = 0;
+    let lastResult = null;
+    let errors = [];
+
+    for (const session of targetSessions) {
+      try {
+        const result = await executeChannelReaction(session.sock, url, emoji);
+        lastResult = result;
+        successCount++;
+      } catch (err) {
+        failCount++;
+        errors.push({ sessionId: session.id, error: err.message || String(err) });
+      }
+    }
+
+    if (successCount > 0) {
+      res.json({
+        ok: true,
+        message: `Reacted with ${lastResult.emoji} to channel post ${lastResult.serverId} across ${successCount}/${targetSessions.length} session(s)`,
+        details: lastResult,
+        successCount,
+        failCount,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    } else {
+      res.status(400).json({
+        ok: false,
+        error: "Failed to react across all sessions.",
+        details: errors
+      });
+    }
   } catch (error) {
     res.status(400).json({
       ok: false,
