@@ -19,10 +19,26 @@ export const command = {
     }
 
     try {
-      const res = await fetch(`https://api.vkrdown.com/v1/twitter?url=${encodeURIComponent(url)}`);
-      const data = await res.json().catch(() => ({}));
+      let mediaUrl = null;
 
-      const mediaUrl = data?.data?.url || data?.data?.video || data?.url;
+      // Endpoint 1: densave
+      try {
+        const res1 = await fetch(`https://apis.emmyhenztech.xyz/api/densave?url=${encodeURIComponent(url)}`);
+        const data1 = await res1.json();
+        const resObj = data1.result || data1;
+        mediaUrl = resObj?.url || resObj?.video || resObj?.media;
+      } catch {}
+
+      // Endpoint 2: aio-rapidapi fallback
+      if (!mediaUrl) {
+        try {
+          const res2 = await fetch(`https://apis.emmyhenztech.xyz/api/aio-rapidapi?url=${encodeURIComponent(url)}`);
+          const data2 = await res2.json();
+          const resObj2 = data2.result || data2;
+          mediaUrl = resObj2?.url || resObj2?.video || resObj2?.media;
+        } catch {}
+      }
+
       if (mediaUrl) {
         await sock.sendMessage(
           remoteJid,

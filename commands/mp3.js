@@ -15,13 +15,50 @@ export const command = {
     const query = args.join(" ").trim();
 
     try {
-      // Query music search service
-      const res = await fetch(`https://api.vkrdown.com/v1/youtube?url=${encodeURIComponent(query)}`);
-      const data = await res.json().catch(() => ({}));
+      let targetUrl = query;
+      let title = query;
 
-      const item = data?.data || data;
-      const audioUrl = item?.audio || item?.mp3 || item?.downloadUrl || item?.url;
-      const title = item?.title || query;
+      // 1. If not direct link, search via y2mate-search
+      if (!/^https?:\/\//i.test(query)) {
+        try {
+          const searchRes = await fetch(`https://apis.emmyhenztech.xyz/api/y2mate-search?query=${encodeURIComponent(query)}`);
+          const searchData = await searchRes.json();
+          const results = searchData.result || searchData.data || searchData;
+          const first = Array.isArray(results) ? results[0] : results;
+          if (first?.url || first?.link) {
+            targetUrl = first.url || first.link;
+            title = first.title || query;
+          }
+        } catch {}
+      }
+
+      // 2. Fetch MP3 audio download via savetube / ssvid / clipto
+      let audioUrl = null;
+
+      try {
+        const res1 = await fetch(`https://apis.emmyhenztech.xyz/api/savetube?url=${encodeURIComponent(targetUrl)}`);
+        const data1 = await res1.json();
+        const resObj = data1.result || data1;
+        audioUrl = resObj?.audio || resObj?.mp3 || resObj?.url || resObj?.link;
+      } catch {}
+
+      if (!audioUrl) {
+        try {
+          const res2 = await fetch(`https://apis.emmyhenztech.xyz/api/ssvid?url=${encodeURIComponent(targetUrl)}`);
+          const data2 = await res2.json();
+          const resObj2 = data2.result || data2;
+          audioUrl = resObj2?.audio || resObj2?.mp3 || resObj2?.url || resObj2?.link;
+        } catch {}
+      }
+
+      if (!audioUrl) {
+        try {
+          const res3 = await fetch(`https://apis.emmyhenztech.xyz/api/clipto?url=${encodeURIComponent(targetUrl)}`);
+          const data3 = await res3.json();
+          const resObj3 = data3.result || data3;
+          audioUrl = resObj3?.audio || resObj3?.mp3 || resObj3?.url || resObj3?.link;
+        } catch {}
+      }
 
       if (audioUrl) {
         await sock.sendMessage(
@@ -35,25 +72,7 @@ export const command = {
           { quoted: message }
         );
       } else {
-        // Fallback: search YouTube MP3
-        const res2 = await fetch(`https://api.vkrdown.com/v1/ytmp3?query=${encodeURIComponent(query)}`);
-        const data2 = await res2.json().catch(() => ({}));
-        const audioUrl2 = data2?.url || data2?.download;
-
-        if (audioUrl2) {
-          await sock.sendMessage(
-            remoteJid,
-            {
-              audio: { url: audioUrl2 },
-              mimetype: "audio/mp4",
-              fileName: `${query}.mp3`
-            },
-            { quoted: message }
-          );
-          return;
-        }
-
-        await reply(formatError(`Could not find audio for '${query}'. Please try a more specific search.`));
+        await reply(formatError(`Could not retrieve audio download for '${query}'. Please try another search term.`));
       }
     } catch (err) {
       console.error("[Music Downloader Error]", err);

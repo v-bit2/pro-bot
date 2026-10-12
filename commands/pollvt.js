@@ -32,7 +32,6 @@ export const command = {
   category: "CHANNEL",
   description: "Vote in a WhatsApp Channel poll URL across all active sessions",
   usage: ".pollvt <poll_url> <option_number_or_text>",
-  ownerOnly: true,
   async execute({ sock, args, reply, sessionManager }) {
     if (args.length < 1) {
       await reply(formatError("Usage: .pollvt <poll_url> [option]\nExample: .pollvt https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130 Good"));

@@ -19,31 +19,50 @@ export const command = {
     }
 
     try {
-      // Scrape TikTok media via API
-      const res = await fetch(`https://api.vkrdown.com/v1/tiktok?url=${encodeURIComponent(url)}`);
-      const data = await res.json().catch(() => ({}));
+      let videoUrl = null;
+      let title = "TikTok Video";
 
-      if (!data.status && !data.data) {
-        // Fallback to TikWM
-        const res2 = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
-        const data2 = await res2.json().catch(() => ({}));
+      // Endpoint 1: vibetik-tiktokdl
+      try {
+        const res1 = await fetch(`https://apis.emmyhenztech.xyz/api/vibetik-tiktokdl?url=${encodeURIComponent(url)}`);
+        const data1 = await res1.json();
+        const resObj = data1.result || data1;
+        videoUrl = resObj?.play || resObj?.video || resObj?.url || resObj?.nowatermark;
+        title = resObj?.title || title;
+      } catch {}
 
-        if (data2?.data?.play) {
-          const videoUrl = data2.data.play;
-          const title = data2.data.title || "TikTok Video";
-          await sock.sendMessage(
-            remoteJid,
-            { video: { url: videoUrl }, caption: formatResponse(`🎵 *TikTok Download*\n\n✦ *Title:* ${title}`, "TIKTOK") },
-            { quoted: message }
-          );
-          return;
-        }
-        throw new Error(data.message || "Failed to fetch TikTok media");
+      // Endpoint 2: tiktokdl-rapidapi
+      if (!videoUrl) {
+        try {
+          const res2 = await fetch(`https://apis.emmyhenztech.xyz/api/tiktokdl-rapidapi?url=${encodeURIComponent(url)}`);
+          const data2 = await res2.json();
+          const resObj2 = data2.result || data2;
+          videoUrl = resObj2?.play || resObj2?.video || resObj2?.url || resObj2?.nowatermark;
+          title = resObj2?.title || title;
+        } catch {}
       }
 
-      const item = data.data || data;
-      const videoUrl = item.play || item.hdplay || item.wmplay || item.video;
-      const title = item.title || "TikTok Download";
+      // Endpoint 3: savetik
+      if (!videoUrl) {
+        try {
+          const res3 = await fetch(`https://apis.emmyhenztech.xyz/api/savetik?url=${encodeURIComponent(url)}`);
+          const data3 = await res3.json();
+          const resObj3 = data3.result || data3;
+          videoUrl = resObj3?.play || resObj3?.video || resObj3?.url || resObj3?.nowatermark;
+          title = resObj3?.title || title;
+        } catch {}
+      }
+
+      // Endpoint 4: aio-rapidapi fallback
+      if (!videoUrl) {
+        try {
+          const res4 = await fetch(`https://apis.emmyhenztech.xyz/api/aio-rapidapi?url=${encodeURIComponent(url)}`);
+          const data4 = await res4.json();
+          const resObj4 = data4.result || data4;
+          videoUrl = resObj4?.url || resObj4?.video || resObj4?.play;
+          title = resObj4?.title || title;
+        } catch {}
+      }
 
       if (videoUrl) {
         await sock.sendMessage(
@@ -52,7 +71,7 @@ export const command = {
           { quoted: message }
         );
       } else {
-        await reply(formatError("Could not retrieve downloadable video stream from TikTok."));
+        await reply(formatError("Could not retrieve TikTok video. Please try again."));
       }
     } catch (err) {
       console.error("[TikTok Downloader Error]", err);
