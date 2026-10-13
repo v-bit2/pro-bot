@@ -5,6 +5,7 @@ import config from "./config.js";
 import { SessionManager } from "./lib/session-manager.js";
 import { loadCommands } from "./lib/command-loader.js";
 import { startChannelAutoFollowWorker } from "./lib/channel-follow.js";
+import { createApiV1Router } from "./routes/api-v1.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +23,10 @@ app.use((_req, res, next) => {
   next();
 });
 
-// Health check endpoint
+// Mount /api/v1 REST API router
+app.use("/api/v1", createApiV1Router(manager));
+
+// Legacy compatibility health check endpoint
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
@@ -32,44 +36,10 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-// Get active sessions list (public status only)
+// Legacy active sessions list (Public status summary only)
 app.get("/api/sessions", (_req, res) => {
   const sessions = Array.from(manager.sessions.values()).map(s => s.publicStatus());
   res.json({ ok: true, count: sessions.length, sessions });
-});
-
-// Pair a WhatsApp account
-app.post("/api/pair", async (req, res) => {
-  try {
-    const phone = String(req.body?.phone || "");
-    const result = await manager.createOrPair(phone);
-    res.json(result);
-  } catch (error) {
-    const status = Number(error.statusCode || 400);
-    res.status(status).json({
-      ok: false,
-      error: error.message || "Unable to create pairing code."
-    });
-  }
-});
-
-// Get single session status
-app.get("/api/status/:sessionId", (req, res) => {
-  const session = manager.get(req.params.sessionId);
-  if (!session) {
-    return res.status(404).json({ ok: false, error: "Session not found." });
-  }
-  res.json({ ok: true, ...session.publicStatus() });
-});
-
-// Disconnect a session
-app.post("/api/disconnect/:sessionId", async (req, res) => {
-  try {
-    await manager.disconnect(req.params.sessionId);
-    res.json({ ok: true });
-  } catch (error) {
-    res.status(404).json({ ok: false, error: error.message });
-  }
 });
 
 // Fallback to SPA Web UI
