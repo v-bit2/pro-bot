@@ -6,8 +6,10 @@ A high-performance, modular, multi-session WhatsApp MD bot powered by Node.js an
 
 ## 🌟 Key Features
 
-- **Baileys Pairing Code Authentication**: Simple pairing with phone number without scanning QR codes.
-- **Multi-Session Support**: Run multiple WhatsApp accounts in an isolated single bot instance.
+- **Baileys Pairing Code & QR Authentication**: Simple device linking via phone pairing code or QR scanning.
+- **Multi-Session API v1**: Complete REST API for public bot creation, settings management, actions, and deletion.
+- **Atomic 3-Bot Maximum Limit**: Per-phone number atomic limit enforcement in MongoDB.
+- **Cryptographic Authorization**: 256-bit secure management token issuance with salted SHA-256 hash storage.
 - **Voltra Box Formatting**: Recognizable response layout (`┏▣ ◈ *VOLTRA MINI* ◈ ... ┗▣`).
 - **Bot Branding Image**: High-resolution dark energy/lightning logo included with `.menu` and bot responses.
 - **Self-Chat / "Note to Self" Support**: Full command execution when messaging your own WhatsApp chat.
@@ -18,6 +20,64 @@ A high-performance, modular, multi-session WhatsApp MD bot powered by Node.js an
 - **Group Moderation**: Anti-link protection (`off`, `delete`, `warn`, `kick`), user warnings, custom welcome/goodbye messages.
 - **Render Keep-Alive Support**: Integrated endpoint and ping worker to prevent idle sleep on hosting platforms.
 - **Responsive Web UI**: Modern, mobile-first Web interface for pairing and monitoring active sessions.
+
+---
+
+## 🔌 REST API v1 Documentation
+
+Voltra Mini provides a complete, rate-limited REST API under `/api/v1` for bot creation, pairing, status monitoring, settings configuration, and session management.
+
+### Authentication
+Protected endpoints require a management Bearer token issued during bot creation:
+`Authorization: Bearer <managementToken>`
+
+---
+
+### Endpoints Summary
+
+| Method | Endpoint | Auth Required | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/health` | No | Public operational service health check |
+| `POST` | `/api/v1/bots` | No | Create bot record & receive one-time management token |
+| `GET` | `/api/v1/bots` | Bearer Token | List all bots owned by the authenticated user |
+| `GET` | `/api/v1/bots/:botId` | Bearer Token | Get detailed bot information & settings |
+| `GET` | `/api/v1/bots/:botId/settings` | Bearer Token | Retrieve bot configuration settings |
+| `PATCH` | `/api/v1/bots/:botId/settings` | Bearer Token | Update configurable bot settings |
+| `POST` | `/api/v1/bots/:botId/pair` | Bearer Token | Initiate code or QR pairing handshake |
+| `GET` | `/api/v1/bots/:botId/status` | Bearer Token | Get live lifecycle state & connection status |
+| `POST` | `/api/v1/bots/:botId/actions` | Bearer Token | Dispatch connection action (`reconnect`, `disconnect`, `refresh`) |
+| `DELETE` | `/api/v1/bots/:botId` | Bearer Token | Permanently delete bot & clean up session state |
+
+---
+
+### Example Request (`POST /api/v1/bots`)
+
+```bash
+curl -X POST http://localhost:3000/api/v1/bots \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My Voltra Bot",
+    "phoneNumber": "263786624966",
+    "pairingMethod": "code"
+  }'
+```
+
+**Response (201 Created)**:
+```json
+{
+  "success": true,
+  "data": {
+    "botId": "bot_1a2b3c4d5e6f7a8b9c0d1e2f",
+    "name": "My Voltra Bot",
+    "phoneNumber": "263786624966",
+    "status": "created",
+    "managementToken": "3f8b9a1e0c2d4f5e6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f",
+    "pairingMethod": "code",
+    "createdAt": "2025-02-23T10:00:00.000Z"
+  },
+  "message": "Bot created successfully. Save your management token securely. It will not be shown again."
+}
+```
 
 ---
 
@@ -80,6 +140,7 @@ You can configure Voltra Mini using environment variables or by editing `config.
 | `OWNER_NUMBER` | Bot owner WhatsApp number (country code, no `+`) | `263786624966` |
 | `MAX_SESSIONS` | Maximum simultaneous WhatsApp sessions | `10` |
 | `SESSION_DIR` | Directory for storing session credentials | `./sessions` |
+| `MONGO_URI` | MongoDB connection URI | `""` |
 | `KEEP_ALIVE` | Enable background keep-alive worker | `false` |
 | `KEEP_ALIVE_URL` | Endpoint URL to ping for keep-alive | `""` |
 | `KEEP_ALIVE_INTERVAL` | Ping interval in milliseconds | `300000` (5m) |
