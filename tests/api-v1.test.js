@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import express from "express";
 import fs from "node:fs/promises";
 import { createApiV1Router } from "../routes/api-v1.js";
-import { clearInMemoryBotStore, getBotById } from "../lib/bot-store.js";
+import { clearInMemoryBotStore, getBotById, getBotsByOwnerPhone } from "../lib/bot-store.js";
 import { generateManagementToken, generateSalt, hashManagementToken, verifyManagementToken } from "../lib/management-auth.js";
 import { SessionManager } from "../lib/session-manager.js";
 
@@ -164,11 +164,11 @@ describe("Voltra Mini API v1 Test Suite", () => {
       assert.equal(json.error.code, "INVALID_INPUT");
     });
 
-    it("enforces max 3 bots limit per normalized phone number", async () => {
+    it("allows creating unlimited bots for the same normalized phone number", async () => {
       const phone = "263711112222";
 
-      // Create 3 bots successfully
-      for (let i = 1; i <= 3; i++) {
+      // Create 5 bots under same phone number
+      for (let i = 1; i <= 5; i++) {
         const res = await fetch(`${baseUrl}/api/v1/bots`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -177,22 +177,13 @@ describe("Voltra Mini API v1 Test Suite", () => {
         assert.equal(res.status, 201);
       }
 
-      // Attempt 4th creation -> must return 409 Conflict BOT_LIMIT_EXCEEDED
-      const res4 = await fetch(`${baseUrl}/api/v1/bots`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Bot 4", phoneNumber: phone })
-      });
-
-      assert.equal(res4.status, 409);
-      const json4 = await res4.json();
-      assert.equal(json4.success, false);
-      assert.equal(json4.error.code, "BOT_LIMIT_EXCEEDED");
+      const createdBots = await getBotsByOwnerPhone("", phone);
+      assert.equal(createdBots.length, 5);
     });
 
-    it("handles concurrent creation requests safely without exceeding 3-bot limit", async () => {
+    it("handles concurrent creation requests safely creating all bots without artificial limit errors", async () => {
       const phone = "263799998888";
-      const requests = Array.from({ length: 10 }).map((_, i) =>
+      const requests = Array.from({ length: 5 }).map((_, i) =>
         fetch(`${baseUrl}/api/v1/bots`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -204,10 +195,10 @@ describe("Voltra Mini API v1 Test Suite", () => {
       const statuses = responses.map((r) => r.status);
 
       const createdCount = statuses.filter((s) => s === 201).length;
-      const rejectedCount = statuses.filter((s) => s === 409).length;
+      assert.equal(createdCount, 5);
 
-      assert.equal(createdCount, 3);
-      assert.equal(rejectedCount, 7);
+      const createdBots = await getBotsByOwnerPhone("", phone);
+      assert.equal(createdBots.length, 5);
     });
   });
 

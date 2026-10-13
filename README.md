@@ -7,8 +7,8 @@ A high-performance, modular, multi-session WhatsApp MD bot powered by Node.js an
 ## 🌟 Key Features
 
 - **Baileys Pairing Code & QR Authentication**: Simple device linking via phone pairing code or QR scanning.
-- **Multi-Session API v1**: Complete REST API for public bot creation, settings management, actions, and deletion.
-- **Atomic 3-Bot Maximum Limit**: Per-phone number atomic limit enforcement in MongoDB.
+- **Multi-Session API v1**: Complete REST API for public bot creation (unlimited bots per owner), settings management, actions, and deletion.
+- **Unlimited Bot Creation**: Support for creating multiple bots per normalized WhatsApp phone number.
 - **Cryptographic Authorization**: 256-bit secure management token issuance with salted SHA-256 hash storage.
 - **Voltra Box Formatting**: Recognizable response layout (`┏▣ ◈ *VOLTRA MINI* ◈ ... ┗▣`).
 - **Bot Branding Image**: High-resolution dark energy/lightning logo included with `.menu` and bot responses.
@@ -38,7 +38,7 @@ Protected endpoints require a management Bearer token issued during bot creation
 | Method | Endpoint | Auth Required | Description |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/v1/health` | No | Public operational service health check |
-| `POST` | `/api/v1/bots` | No | Create bot record & receive one-time management token |
+| `POST` | `/api/v1/bots` | No | Create bot record & receive one-time management token (unlimited per owner) |
 | `GET` | `/api/v1/bots` | Bearer Token | List all bots owned by the authenticated user |
 | `GET` | `/api/v1/bots/:botId` | Bearer Token | Get detailed bot information & settings |
 | `GET` | `/api/v1/bots/:botId/settings` | Bearer Token | Retrieve bot configuration settings |

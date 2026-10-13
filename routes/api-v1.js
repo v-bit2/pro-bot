@@ -69,6 +69,7 @@ export function createApiV1Router({ config, manager }) {
   /**
    * POST /api/v1/bots
    * Creates a new bot record and returns a one-time management token.
+   * Supports unlimited bots per WhatsApp owner.
    */
   router.post("/bots", createRateLimit, async (req, res) => {
     let normalizedPhone = null;
@@ -113,8 +114,8 @@ export function createApiV1Router({ config, manager }) {
         });
       }
 
-      // 4. Reserve slot enforcing atomic 3-bot limit
-      await reserveBotSlot(config.mongoUri, normalizedPhone, 3);
+      // 4. Reserve slot (unlimited bots per owner)
+      await reserveBotSlot(config.mongoUri, normalizedPhone);
       reservedSlot = true;
 
       // 5. Generate bot identity and cryptographic management credentials
