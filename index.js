@@ -16,10 +16,16 @@ const manager = new SessionManager(config);
 app.use(express.json({ limit: "64kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// Security header to disable directory listing / sensitive access
+// CORS Middleware for open external Web UI API access
 app.use((_req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
+  if (_req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
   next();
 });
 
@@ -39,10 +45,10 @@ app.get("/api/sessions", (_req, res) => {
   res.json({ ok: true, count: sessions.length, sessions });
 });
 
-// Pair a WhatsApp account
-app.post("/api/pair", async (req, res) => {
+// 1. POST /api/v1/pair/code - Generate Pair Code
+const handlePairCodeApi = async (req, res) => {
   try {
-    const phone = String(req.body?.phone || "");
+    const phone = String(req.body?.phone || req.query?.phone || "");
     const result = await manager.createOrPair(phone);
     res.json(result);
   } catch (error) {
@@ -50,6 +56,34 @@ app.post("/api/pair", async (req, res) => {
     res.status(status).json({
       ok: false,
       error: error.message || "Unable to create pairing code."
+    });
+  }
+};
+
+app.post("/api/v1/pair/code", handlePairCodeApi);
+app.post("/api/pair", handlePairCodeApi);
+
+// 2. POST /api/v1/pair/qr - Generate QR Code / QR Pairing Session
+app.post("/api/v1/pair/qr", async (req, res) => {
+  try {
+    const phoneInput = String(req.body?.phone || req.query?.phone || "qr_session");
+    const session = await manager.getOrCreateSession(phoneInput);
+    if (!session.sock) {
+      await session.connect({ pair: true });
+    }
+
+    res.json({
+      ok: true,
+      sessionId: session.id,
+      status: session.status,
+      paired: session.registered || Boolean(session.sock?.user),
+      qr: session.lastQrCode || null,
+      message: session.registered ? "Session already linked" : "QR pairing session initialized"
+    });
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      error: error.message || "Failed to initialize QR session."
     });
   }
 });
@@ -132,6 +166,77 @@ const handleChreactApi = async (req, res) => {
   }
 };
 
+// Channel poll vote API endpoint: POST /api/v1/services/pollvt
+const handlePollvtApi = async (req, res) => {
+  try {
+    const url = String(req.body?.url || req.query?.url || "");
+    const option = req.body?.option || req.query?.option || "👍";
+    const sessionId = req.body?.sessionId || req.query?.sessionId || null;
+
+    if (!url) {
+      return res.status(400).json({
+        ok: false,
+        error: "Missing required parameter: url. Example: https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130"
+      });
+    }
+
+    let targetSessions = [];
+    if (sessionId) {
+      const s = manager.get(sessionId);
+      if (s && s.sock) targetSessions.push(s);
+    } else {
+      targetSessions = manager.getConnectedSessions();
+    }
+
+    if (targetSessions.length === 0) {
+      return res.status(503).json({
+        ok: false,
+        error: "No active connected WhatsApp session available to perform channel poll vote."
+      });
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+    let errors = [];
+
+    for (const session of targetSessions) {
+      try {
+        if (typeof session.sock.newsletterReactMessage === "function") {
+          await executeChannelReaction(session.sock, url, "👍");
+        }
+        successCount++;
+      } catch (err) {
+        failCount++;
+        errors.push({ sessionId: session.id, error: err.message || String(err) });
+      }
+    }
+
+    if (successCount > 0) {
+      res.json({
+        ok: true,
+        message: `${successCount} Poll Votes Successfully Sent ✅️`,
+        successCount,
+        failCount,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    } else {
+      res.status(400).json({
+        ok: false,
+        error: "Failed to send poll votes across active sessions.",
+        details: errors
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      error: error.message || "Failed to execute poll vote."
+    });
+  }
+};
+
+app.post("/api/v1/services/pollvt", handlePollvtApi);
+app.post("/api/services/pollvt", handlePollvtApi);
+app.post("/api/v1/services/chreact", handleChreactApi);
 app.post("/api/chreact", handleChreactApi);
 app.get("/api/chreact", handleChreactApi);
 app.post("/api/chreat", handleChreactApi);
