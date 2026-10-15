@@ -33,7 +33,7 @@ export const command = {
     if (mode === "off") {
       await sock.sendMessage(message.key.remoteJid, { text: "Anticall Disabled ❌️" }, { quoted: message });
     } else {
-      await sock.sendMessage(message.key.remoteJid, { text: `Anticall Enabled (${mode.toUpperCase()}) ✅️` }, { quoted: message });
+      await sock.sendMessage(message.key.remoteJid, { text: "Anticall Enabled ✅️" }, { quoted: message });
     }
   }
 };

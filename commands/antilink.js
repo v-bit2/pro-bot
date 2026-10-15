@@ -29,7 +29,7 @@ export const command = {
     if (mode === "off") {
       await sock.sendMessage(message.key.remoteJid, { text: "Antilink Disabled ❌️" }, { quoted: message });
     } else {
-      await sock.sendMessage(message.key.remoteJid, { text: `Antilink Enabled (${mode.toUpperCase()}) ✅️` }, { quoted: message });
+      await sock.sendMessage(message.key.remoteJid, { text: "Antilink Enabled ✅️" }, { quoted: message });
     }
   }
 };
