@@ -15,7 +15,7 @@ export const command = {
     const textStr = args.join(" ");
 
     try {
-      await reply(formatBox("VOLTRA MINI", "⚡ Generating THUNDER effect for: " + textStr + "..."));
+      await sock.sendMessage(remoteJid, { text: "generating effect" }, { quoted: message });
       const buffer = await generateTextmakerImage("thunder", textStr);
       const caption = "⚡ *VOLTRA MINI | TEXTMAKER*\n\n✦ *Effect:* THUNDER\n✦ *Text:* " + textStr;
       await sock.sendMessage(remoteJid, {

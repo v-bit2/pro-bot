@@ -42,7 +42,7 @@ export const command = {
       if (mediaUrl) {
         await sock.sendMessage(
           remoteJid,
-          { video: { url: mediaUrl }, caption: formatResponse("🐦 *Twitter/X Download*", "TWITTER/X") },
+          { video: { url: mediaUrl }, caption: "Successfully Downloaded ✅️" },
           { quoted: message }
         );
       } else {

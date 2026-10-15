@@ -8,7 +8,7 @@ export const command = {
   description: "Toggle anti-delete revoked message protection setting (off, on)",
   usage: ".antidelete <on|off>",
   ownerOnly: true,
-  async execute({ reply, args, sock }) {
+  async execute({ sock, message, reply, args }) {
     const sessionId = sock?.user?.id?.split(":")[0] || "default";
     const sessionCfg = getSessionSettings(sessionId);
     const current = Boolean(sessionCfg.antiDelete);
@@ -27,6 +27,6 @@ export const command = {
     updateSessionSettings(sessionId, { antiDelete: next });
     updateSettings({ antiDelete: next });
 
-    await reply(formatBox("ANTI-DELETE", next ? "Antidelete Enabled ✅️" : "Antidelete Disabled ❌️"));
+    await sock.sendMessage(message.key.remoteJid, { text: next ? "Antidelete Enabled ✅️" : "Antidelete Disabled ❌️" }, { quoted: message });
   }
 };

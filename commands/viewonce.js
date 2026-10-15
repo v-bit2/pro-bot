@@ -69,9 +69,9 @@ export const command = {
       const captionText = media.msg.caption ? `🔓 Revealed View-Once Media:\n${media.msg.caption}` : "🔓 Revealed View-Once Media";
 
       if (media.type === "image") {
-        await sock.sendMessage(remoteJid, { image: buffer, caption: captionText }, { quoted: message });
+        await sock.sendMessage(remoteJid, { image: buffer, caption: "Successfully Revealed ✅️" }, { quoted: message });
       } else if (media.type === "video") {
-        await sock.sendMessage(remoteJid, { video: buffer, caption: captionText }, { quoted: message });
+        await sock.sendMessage(remoteJid, { video: buffer, caption: "Successfully Revealed ✅️" }, { quoted: message });
       }
     } catch (err) {
       console.error("[ViewOnce Error]", err);

@@ -108,7 +108,7 @@ export const command = {
     }
 
     if (successCount > 0) {
-      await reply(formatSuccess(`${successCount} Channel Reactions Successfully Sent ✅️`));
+      await reply(formatSuccess("Channel Reactions Successful ✅️"));
     } else {
       await reply(formatError(`Failed to react across all sessions:\n${errors.join("\n")}`));
     }

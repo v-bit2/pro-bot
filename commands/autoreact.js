@@ -8,10 +8,10 @@ export const command = {
   description: "Toggle automatic reaction on incoming commands",
   usage: ".autoreact",
   ownerOnly: true,
-  async execute({ reply }) {
+  async execute({ sock, message }) {
     const current = getSettings().autoReact;
     const next = !current;
     updateSettings({ autoReact: next });
-    await reply(formatSuccess(`Auto reaction is now *${next ? "ENABLED" : "DISABLED"}*`));
+    await sock.sendMessage(message.key.remoteJid, { text: next ? "autoreact Enabled ✅️" : "autoreact Disabled ❌️" }, { quoted: message });
   }
 };

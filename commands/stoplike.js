@@ -8,7 +8,7 @@ export const command = {
   description: "Disable automatic reactions for a specified WhatsApp newsletter channel JID",
   usage: ".stoplike <120363012345678901@newsletter>",
   ownerOnly: true,
-  async execute({ args, reply }) {
+  async execute({ sock, message, args, reply }) {
     if (args.length === 0) {
       await reply(formatError("Please specify a channel JID ending in @newsletter, e.g. .stoplike 120363012345678901@newsletter"));
       return;
@@ -21,6 +21,6 @@ export const command = {
     }
 
     removeChannelReactionConfig(jid);
-    await reply(formatSuccess(`Disabled automatic channel reactions for *${jid}*`));
+    await sock.sendMessage(message.key.remoteJid, { text: "Autolike Disabled ❌️" }, { quoted: message });
   }
 };

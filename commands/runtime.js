@@ -1,3 +1,4 @@
+import { sendBotResponse } from "../lib/response.js";
 import { formatResponse } from "../lib/format.js";
 
 export const command = {
@@ -6,7 +7,7 @@ export const command = {
   category: "GENERAL",
   description: "Display formatted bot process uptime",
   usage: ".runtime",
-  async execute({ reply, settings }) {
+  async execute({ sock, message, remoteJid, settings }) {
     const uptime = Math.floor(process.uptime());
     const days = Math.floor(uptime / 86400);
     const hours = Math.floor((uptime % 86400) / 3600);
@@ -20,6 +21,13 @@ export const command = {
     parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
 
     const body = `✦ 🤖 *Name:* ${settings.botName || "VOLTRA MINI"}\n✦ ⏳ *Uptime:* ${parts.join(" ")}`;
-    await reply(formatResponse(body, "BOT UPTIME"), { forwarded: true });
+
+    await sendBotResponse(sock, remoteJid, {
+      title: "BOT UPTIME",
+      content: body,
+      image: true,
+      quoted: message,
+      forwarded: true
+    });
   }
 };

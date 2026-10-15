@@ -8,7 +8,7 @@ export const command = {
   usage: ".antivideo",
   groupOnly: true,
   adminOnly: true,
-  async execute({ reply, args, remoteJid }) {
+  async execute({ sock, message, reply, args, remoteJid }) {
     const current = Boolean(getGroupSettings(remoteJid).antivideo);
     if (args.length === 0) {
       await reply(formatSuccess(`Current Anti-Video status: *${current ? "ENABLED" : "DISABLED"}*\n\nUsage: .antivideo <on|off>`));
@@ -24,6 +24,6 @@ export const command = {
     }
 
     updateGroupSettings(remoteJid, { antivideo: next });
-    await reply(formatBox("ANTI-VIDEO", next ? "Antivideo Enabled ✅️" : "Antivideo Disabled ❌️"));
+    await sock.sendMessage(message.key.remoteJid, { text: next ? "Antivideo Enabled ✅️" : "Antivideo Disabled ❌️" }, { quoted: message });
   }
 };

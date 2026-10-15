@@ -25,7 +25,7 @@ export const command = {
         .jpeg({ quality: 90 })
         .toBuffer();
 
-      await sock.sendMessage(remoteJid, { image: jpegBuffer, caption: "🖼️ Converted from sticker" }, { quoted: message });
+      await sock.sendMessage(remoteJid, { image: jpegBuffer, caption: "Successfully Generated ✅️" }, { quoted: message });
     } catch (err) {
       await reply(formatError(`Failed to convert sticker to image: ${err.message}`));
     }

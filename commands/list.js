@@ -1,3 +1,4 @@
+import { sendBotResponse } from "../lib/response.js";
 import { formatBox } from "../lib/format.js";
 
 export const command = {
@@ -6,18 +7,24 @@ export const command = {
   category: "GENERAL",
   description: "Display a compact list of all available command categories and command counts",
   usage: ".list",
-  async execute({ prefix, sendBox, getCommandsByCategory }) {
+  async execute({ sock, message, remoteJid, prefix, getCommandsByCategory }) {
     const categories = getCommandsByCategory();
     let totalCmds = 0;
-    let content = "Available Command Categories:\n";
+    let content = "Available Command Categories:\n\n";
 
     for (const [cat, cmds] of Object.entries(categories)) {
       totalCmds += cmds.length;
-      content += `\n• *${cat}* (${cmds.length} commands)\n  Examples: ${cmds.slice(0, 3).map(c => prefix + c.name).join(", ")}`;
+      content += `✦ *${cat}* : ${cmds.length}\n`;
     }
 
-    content += `\n\nTotal Commands: ${totalCmds}\nUse *${prefix}menu <category>* for details.`;
+    content += `\n✦ Total Commands: ${totalCmds}\n✦ Use *${prefix}menu <category>* for details.`;
 
-    await sendBox("COMMAND LIST", content);
+    await sendBotResponse(sock, remoteJid, {
+      title: "COMMAND LIST",
+      content,
+      image: true,
+      quoted: message,
+      forwarded: true
+    });
   }
 };

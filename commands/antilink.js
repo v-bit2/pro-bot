@@ -9,7 +9,7 @@ export const command = {
   usage: ".antilink <off|delete|warn|kick>",
   groupOnly: true,
   adminOnly: true,
-  async execute({ reply, args, remoteJid }) {
+  async execute({ sock, message, reply, args, remoteJid }) {
     if (args.length === 0) {
       const current = getGroupSettings(remoteJid).antilink || "off";
       await reply(formatSuccess(`Current Anti-Link mode: *${current.toUpperCase()}*\n\nUsage:\n.antilink on (or delete)\n.antilink warn\n.antilink kick\n.antilink off`));
@@ -27,9 +27,9 @@ export const command = {
 
     updateGroupSettings(remoteJid, { antilink: mode });
     if (mode === "off") {
-      await reply(formatBox("ANTI-LINK", "Antilink Disabled ❌️"));
+      await sock.sendMessage(message.key.remoteJid, { text: "Antilink Disabled ❌️" }, { quoted: message });
     } else {
-      await reply(formatBox("ANTI-LINK", `Antilink Enabled (${mode.toUpperCase()}) ✅️`));
+      await sock.sendMessage(message.key.remoteJid, { text: `Antilink Enabled (${mode.toUpperCase()}) ✅️` }, { quoted: message });
     }
   }
 };

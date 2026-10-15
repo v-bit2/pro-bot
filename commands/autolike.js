@@ -8,7 +8,7 @@ export const command = {
   description: "Enable automatic reactions for a specified WhatsApp newsletter channel JID",
   usage: ".autolike <120363012345678901@newsletter>",
   ownerOnly: true,
-  async execute({ args, reply }) {
+  async execute({ sock, message, args, reply }) {
     if (args.length === 0) {
       await reply(formatError("Please specify a channel JID ending in @newsletter, e.g. .autolike 120363012345678901@newsletter"));
       return;
@@ -22,7 +22,7 @@ export const command = {
 
     const success = addChannelReactionConfig(jid);
     if (success) {
-      await reply(formatSuccess(`Enabled automatic channel reactions for *${jid}*`));
+      await sock.sendMessage(message.key.remoteJid, { text: "Autolike Enabled ✅️" }, { quoted: message });
     } else {
       await reply(formatError(`Failed to enable autolike for *${jid}*`));
     }

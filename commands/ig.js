@@ -44,13 +44,13 @@ export const command = {
         if (isVideo) {
           await sock.sendMessage(
             remoteJid,
-            { video: { url: mediaUrl }, caption: formatResponse("📸 *Instagram Download*", "INSTAGRAM") },
+            { video: { url: mediaUrl }, caption: "Successfully Downloaded ✅️" },
             { quoted: message }
           );
         } else {
           await sock.sendMessage(
             remoteJid,
-            { image: { url: mediaUrl }, caption: formatResponse("📸 *Instagram Download*", "INSTAGRAM") },
+            { image: { url: mediaUrl }, caption: "Successfully Downloaded ✅️" },
             { quoted: message }
           );
         }

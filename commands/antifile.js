@@ -8,7 +8,7 @@ export const command = {
   usage: ".antifile",
   groupOnly: true,
   adminOnly: true,
-  async execute({ reply, args, remoteJid }) {
+  async execute({ sock, message, reply, args, remoteJid }) {
     const current = Boolean(getGroupSettings(remoteJid).antifile);
     if (args.length === 0) {
       await reply(formatSuccess(`Current Anti-File status: *${current ? "ENABLED" : "DISABLED"}*\n\nUsage: .antifile <on|off>`));
@@ -24,6 +24,6 @@ export const command = {
     }
 
     updateGroupSettings(remoteJid, { antifile: next });
-    await reply(formatBox("ANTI-FILE", next ? "Antifile Enabled ✅️" : "Antifile Disabled ❌️"));
+    await sock.sendMessage(message.key.remoteJid, { text: next ? "Antifile Enabled ✅️" : "Antifile Disabled ❌️" }, { quoted: message });
   }
 };

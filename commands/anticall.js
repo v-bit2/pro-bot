@@ -8,7 +8,7 @@ export const command = {
   description: "Configure anti-call protection setting (off, on, block)",
   usage: ".anticall <off|on|block>",
   ownerOnly: true,
-  async execute({ reply, args, sock }) {
+  async execute({ sock, message, reply, args }) {
     const sessionId = sock?.user?.id?.split(":")[0] || "default";
     const sessionCfg = getSessionSettings(sessionId);
 
@@ -31,9 +31,9 @@ export const command = {
     updateSettings({ antiCall: mode !== "off" });
 
     if (mode === "off") {
-      await reply(formatBox("ANTI-CALL", "Anticall Disabled ❌️"));
+      await sock.sendMessage(message.key.remoteJid, { text: "Anticall Disabled ❌️" }, { quoted: message });
     } else {
-      await reply(formatBox("ANTI-CALL", `Anticall Enabled (${mode.toUpperCase()}) ✅️`));
+      await sock.sendMessage(message.key.remoteJid, { text: `Anticall Enabled (${mode.toUpperCase()}) ✅️` }, { quoted: message });
     }
   }
 };

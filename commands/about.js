@@ -1,4 +1,12 @@
+import { sendBotResponse } from "../lib/response.js";
 import { formatResponse } from "../lib/format.js";
+
+function formatUptime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  return `${h}h ${m}m ${s}s`;
+}
 
 export const command = {
   name: "about",
@@ -6,18 +14,21 @@ export const command = {
   category: "GENERAL",
   description: "Display information about Voltra Mini",
   usage: ".about",
-  async execute({ reply, config }) {
-    const body = `${config.name} is a high-performance, lightweight multi-session WhatsApp bot built with Node.js and Baileys.
+  async execute({ sock, message, remoteJid, config, getAllCommands }) {
+    const totalCmds = getAllCommands().length;
+    const uptimeStr = formatUptime(process.uptime());
 
-Features:
-• Multi-Session Support
-• Dynamic Command Loader
-• Built-in Web UI & Pairing
-• Self-Chat Support ("Note to Self")
-• Human-like typing presence
-• Group management suite
-• Render hosting keep-alive support`;
+    const body = `✦ Developer: ${config.owner}
+✦ Commands: ${totalCmds}
+✦ Version: v2.0.0
+✦ Uptime: ${uptimeStr}`;
 
-    await reply(formatResponse(body, "GENERAL"), { forwarded: true });
+    await sendBotResponse(sock, remoteJid, {
+      title: "ABOUT VOLTRA",
+      content: body,
+      image: true,
+      quoted: message,
+      forwarded: true
+    });
   }
 };

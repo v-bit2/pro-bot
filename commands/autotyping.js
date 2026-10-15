@@ -8,10 +8,10 @@ export const command = {
   description: "Toggle automatic composing presence for bot responses",
   usage: ".autotyping",
   ownerOnly: true,
-  async execute({ reply }) {
+  async execute({ sock, message }) {
     const current = getSettings().autoTyping;
     const next = !current;
     updateSettings({ autoTyping: next });
-    await reply(formatSuccess(`Auto typing presence is now *${next ? "ENABLED" : "DISABLED"}*`));
+    await sock.sendMessage(message.key.remoteJid, { text: next ? "autotyping Enabled ✅️" : "autotyping Disabled ❌️" }, { quoted: message });
   }
 };

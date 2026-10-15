@@ -67,7 +67,7 @@ export const command = {
             audio: { url: audioUrl },
             mimetype: "audio/mp4",
             fileName: `${title}.mp3`,
-            caption: formatResponse(`🎵 *Music Download*\n\n✦ *Title:* ${title}`, "MUSIC")
+            caption: "Successfully Downloaded ✅️"
           },
           { quoted: message }
         );

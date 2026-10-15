@@ -67,7 +67,7 @@ export const command = {
       if (videoUrl) {
         await sock.sendMessage(
           remoteJid,
-          { video: { url: videoUrl }, caption: formatResponse(`🎵 *TikTok Download*\n\n✦ *Title:* ${title}`, "TIKTOK") },
+          { video: { url: videoUrl }, caption: "Successfully Downloaded ✅️" },
           { quoted: message }
         );
       } else {

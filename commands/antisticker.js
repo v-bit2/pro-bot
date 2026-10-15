@@ -8,7 +8,7 @@ export const command = {
   usage: ".antisticker",
   groupOnly: true,
   adminOnly: true,
-  async execute({ reply, args, remoteJid }) {
+  async execute({ sock, message, reply, args, remoteJid }) {
     const current = Boolean(getGroupSettings(remoteJid).antisticker);
     if (args.length === 0) {
       await reply(formatSuccess(`Current Anti-Sticker status: *${current ? "ENABLED" : "DISABLED"}*\n\nUsage: .antisticker <on|off>`));
@@ -24,6 +24,6 @@ export const command = {
     }
 
     updateGroupSettings(remoteJid, { antisticker: next });
-    await reply(formatBox("ANTI-STICKER", next ? "Antisticker Enabled ✅️" : "Antisticker Disabled ❌️"));
+    await sock.sendMessage(message.key.remoteJid, { text: next ? "Antisticker Enabled ✅️" : "Antisticker Disabled ❌️" }, { quoted: message });
   }
 };

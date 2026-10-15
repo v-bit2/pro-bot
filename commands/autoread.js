@@ -8,10 +8,10 @@ export const command = {
   description: "Toggle automatic read receipt mark for incoming messages",
   usage: ".autoread",
   ownerOnly: true,
-  async execute({ reply }) {
+  async execute({ sock, message }) {
     const current = getSettings().autoRead;
     const next = !current;
     updateSettings({ autoRead: next });
-    await reply(formatSuccess(`Auto read receipt is now *${next ? "ENABLED" : "DISABLED"}*`));
+    await sock.sendMessage(message.key.remoteJid, { text: next ? "autoread Enabled ✅️" : "autoread Disabled ❌️" }, { quoted: message });
   }
 };
