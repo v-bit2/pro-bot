@@ -199,33 +199,10 @@ const handlePollvtApi = async (req, res) => {
     let failCount = 0;
     let errors = [];
 
-    for (const session of targetSessions) {
-      try {
-        if (typeof session.sock.newsletterReactMessage === "function") {
-          await executeChannelReaction(session.sock, url, "👍");
-        }
-        successCount++;
-      } catch (err) {
-        failCount++;
-        errors.push({ sessionId: session.id, error: err.message || String(err) });
-      }
-    }
-
-    if (successCount > 0) {
-      res.json({
-        ok: true,
-        message: `${successCount} Poll Votes Successfully Sent ✅️`,
-        successCount,
-        failCount,
-        errors: errors.length > 0 ? errors : undefined
-      });
-    } else {
-      res.status(400).json({
-        ok: false,
-        error: "Failed to send poll votes across active sessions.",
-        details: errors
-      });
-    }
+    res.status(400).json({
+      ok: false,
+      error: "Channel poll voting requires in-chat pollEncKey and encrypted poll message context, which cannot be extracted directly from a URL."
+    });
   } catch (error) {
     res.status(400).json({
       ok: false,
