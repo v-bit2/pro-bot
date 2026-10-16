@@ -1,4 +1,4 @@
-import { formatError } from "../lib/format.js";
+import { formatSuccess, formatError } from "../lib/format.js";
 
 /**
  * Parse WhatsApp Channel poll URL:
@@ -24,7 +24,6 @@ function parsePollUrl(urlStr) {
 }
 
 import { executeChannelReaction } from "./chreact.js";
-import { formatSuccess, formatError } from "../lib/format.js";
 
 export const command = {
   name: "pollvt",
