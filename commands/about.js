@@ -1,5 +1,4 @@
 import { sendBotResponse } from "../lib/response.js";
-import { formatResponse } from "../lib/format.js";
 
 function formatUptime(seconds) {
   const h = Math.floor(seconds / 3600);

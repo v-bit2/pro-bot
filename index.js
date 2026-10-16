@@ -45,7 +45,7 @@ app.get("/api/sessions", (_req, res) => {
   res.json({ ok: true, count: sessions.length, sessions });
 });
 
-// 1. POST /api/v1/pair/code - Generate Pair Code
+// 1. POST /api/v1/pair/code or /api/v1/pairing/code - Generate Pair Code
 const handlePairCodeApi = async (req, res) => {
   try {
     const phone = String(req.body?.phone || req.query?.phone || "");
@@ -61,10 +61,11 @@ const handlePairCodeApi = async (req, res) => {
 };
 
 app.post("/api/v1/pair/code", handlePairCodeApi);
+app.post("/api/v1/pairing/code", handlePairCodeApi);
 app.post("/api/pair", handlePairCodeApi);
 
-// 2. POST /api/v1/pair/qr - Generate QR Code / QR Pairing Session
-app.post("/api/v1/pair/qr", async (req, res) => {
+// 2. POST /api/v1/pair/qr or /api/v1/pairing/qr - Generate QR Code / QR Pairing Session
+const handlePairQrApi = async (req, res) => {
   try {
     const phoneInput = String(req.body?.phone || req.query?.phone || "qr_session");
     const session = await manager.getOrCreateSession(phoneInput);
@@ -86,7 +87,10 @@ app.post("/api/v1/pair/qr", async (req, res) => {
       error: error.message || "Failed to initialize QR session."
     });
   }
-});
+};
+
+app.post("/api/v1/pair/qr", handlePairQrApi);
+app.post("/api/v1/pairing/qr", handlePairQrApi);
 
 // Get single session status
 app.get("/api/status/:sessionId", (req, res) => {
@@ -145,7 +149,7 @@ const handleChreactApi = async (req, res) => {
     if (successCount > 0) {
       res.json({
         ok: true,
-        message: `Reacted with ${lastResult.emoji} to channel post ${lastResult.serverId} across ${successCount}/${targetSessions.length} session(s)`,
+        message: `${successCount} Channel Reactions Successfully Sent ✅️`,
         details: lastResult,
         successCount,
         failCount,
