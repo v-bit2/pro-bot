@@ -25,18 +25,40 @@ export const command = {
     }
 
     const categoryFilter = args.length > 0 ? args[0].toLowerCase() : null;
-    const username = message.pushName || message.key?.participant?.split("@")[0] || "User";
 
-    const menuChunks = formatFullMenu(filteredCategories, prefix, categoryFilter, username, visibleCommands.length);
+    if (categoryFilter) {
+      const matchedCat = Object.keys(filteredCategories).find(
+        c => c.toLowerCase() === categoryFilter
+      );
+      if (matchedCat) {
+        const singleCatObj = { [matchedCat]: filteredCategories[matchedCat] };
+        const menuText = formatFullMenu({
+          commandsByCategory: singleCatObj,
+          totalCommands: filteredCategories[matchedCat].length,
+          prefix
+        });
 
-    for (let i = 0; i < menuChunks.length; i++) {
-      const chunkText = menuChunks[i];
-      await sendBotResponse(sock, remoteJid, {
-        content: chunkText,
-        image: i === 0, // Attach landscape bot image on first menu chunk
-        quoted: message,
-        forwarded: true
-      });
+        await sendBotResponse(sock, remoteJid, {
+          content: menuText,
+          image: true,
+          quoted: message,
+          forwarded: true
+        });
+        return;
+      }
     }
+
+    const menuText = formatFullMenu({
+      commandsByCategory: filteredCategories,
+      totalCommands: visibleCommands.length,
+      prefix
+    });
+
+    await sendBotResponse(sock, remoteJid, {
+      content: menuText,
+      image: true,
+      quoted: message,
+      forwarded: true
+    });
   }
 };

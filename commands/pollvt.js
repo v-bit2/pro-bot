@@ -1,8 +1,9 @@
 import { formatSuccess, formatError } from "../lib/format.js";
+import { parseChannelInviteCode } from "./jid.js";
 
 /**
  * Parse WhatsApp Channel poll URL:
- * e.g. https://whatsapp.com/channel/CHANNEL_ID/POLL_ID
+ * e.g. https://whatsapp.com/channel/CHANNEL_INVITE_CODE/POLL_ID
  */
 function parsePollUrl(urlStr) {
   if (!urlStr || typeof urlStr !== "string") return null;
@@ -10,15 +11,11 @@ function parsePollUrl(urlStr) {
   const match = urlStr.trim().match(/whatsapp\.com\/channel\/([a-zA-Z0-9_-]+)(?:\/([0-9]+))?/i);
   if (!match) return null;
 
-  const channelId = match[1];
+  const channelCodeOrJid = match[1];
   const pollId = match[2];
 
-  const newsletterJid = channelId.endsWith("@newsletter")
-    ? channelId
-    : (channelId.includes("@") ? channelId : `${channelId}@newsletter`);
-
   return {
-    newsletterJid,
+    inviteCode: parseChannelInviteCode(channelCodeOrJid) || channelCodeOrJid,
     pollId: pollId || null
   };
 }
@@ -60,35 +57,43 @@ export const command = {
       activeSockets = [{ id: "current", sock }];
     }
 
+    // Resolve channel invite code to actual numeric newsletter JID (e.g., 120363410898511633@newsletter)
+    let numericNewsletterJid = null;
+    const primarySock = activeSockets[0].sock;
+
+    if (parsed.inviteCode.endsWith("@newsletter") && /^\d+@newsletter$/.test(parsed.inviteCode)) {
+      numericNewsletterJid = parsed.inviteCode;
+    } else if (typeof primarySock.newsletterMetadata === "function") {
+      try {
+        const meta = await primarySock.newsletterMetadata("invite", parsed.inviteCode);
+        if (meta?.id) {
+          numericNewsletterJid = meta.id.endsWith("@newsletter") ? meta.id : `${meta.id}@newsletter`;
+        }
+      } catch (err) {
+        console.error("[PollVote] Failed to resolve channel metadata:", err.message);
+      }
+    }
+
+    if (!numericNewsletterJid) {
+      await reply(formatError(`Could not resolve channel metadata or numeric JID for invite code '${parsed.inviteCode}'.`));
+      return;
+    }
+
     let successCount = 0;
-    let failedSessions = [];
 
     for (const session of activeSockets) {
       try {
-        let targetJid = parsed.newsletterJid;
-
-        // Resolve invite code to actual newsletter JID if needed
-        if (!targetJid.includes("@newsletter") && typeof session.sock.newsletterMetadata === "function") {
-          try {
-            const meta = await session.sock.newsletterMetadata("invite", targetJid.replace("@newsletter", ""));
-            if (meta?.id) {
-              targetJid = meta.id.endsWith("@newsletter") ? meta.id : `${meta.id}@newsletter`;
-            }
-          } catch {}
-        }
-
-        // Attempt channel poll vote using Baileys newsletterPollVote / pollUpdate payload
         let voteSuccess = false;
 
         if (typeof session.sock.newsletterPollVote === "function") {
-          await session.sock.newsletterPollVote(targetJid, parsed.pollId, optionInput);
+          await session.sock.newsletterPollVote(numericNewsletterJid, parsed.pollId, optionInput);
           voteSuccess = true;
         } else {
-          // Standard Baileys pollUpdate payload for channel message ID
-          await session.sock.sendMessage(targetJid, {
+          // Standard Baileys pollUpdate payload for numeric newsletter JID
+          await session.sock.sendMessage(numericNewsletterJid, {
             pollUpdate: {
               pollCreationMessageKey: {
-                remoteJid: targetJid,
+                remoteJid: numericNewsletterJid,
                 fromMe: false,
                 id: parsed.pollId
               },
@@ -105,7 +110,6 @@ export const command = {
         }
       } catch (err) {
         console.error(`[ChannelPollVote] Session ${session.id} error on poll ${parsed.pollId}:`, err.message);
-        failedSessions.push(session.id);
       }
     }
 
@@ -114,7 +118,7 @@ export const command = {
     } else {
       await reply(formatError(
         `Channel Poll Vote Analysis:\n\n` +
-        `✦ *Channel JID:* ${parsed.newsletterJid}\n` +
+        `✦ *Channel JID:* ${numericNewsletterJid}\n` +
         `✦ *Poll Msg ID:* ${parsed.pollId}\n` +
         `✦ *Option:* ${optionInput}\n\n` +
         `⚠️ *Protocol Status:* Installed Baileys v6.7.18 lacks native WebSocket Channel Poll voting frame handlers (sub-protocol 1203/channelPoll). WhatsApp Channel polls use server-side encrypted poll tokens that require channel socket subscriber privileges or a dedicated Channel Poll API extension.`
