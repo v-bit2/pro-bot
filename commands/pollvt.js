@@ -28,7 +28,7 @@ export const command = {
   category: "CHANNEL",
   description: "Vote in a WhatsApp poll across active sessions",
   usage: ".pollvt <poll_url_or_jid> <option_name_or_selectable>",
-  async execute({ sock, msg, args, reply, sessionManager }) {
+  async execute({ sock, message, args, reply, sessionManager }) {
     if (args.length < 1) {
       await reply(formatError("Usage: .pollvt <poll_url> <option_text>\nExample: .pollvt https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130 Option 1"));
       return;
@@ -51,10 +51,11 @@ export const command = {
     const parsed = parsePollUrl(urlInput);
 
     // If a quoted poll message is present in chat, handle standard chat poll update
+    const msg = message;
     const quotedMsg = msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage;
     const pollCreationMessage = quotedMsg?.pollCreationMessage || quotedMsg?.pollCreationMessageV2 || quotedMsg?.pollCreationMessageV3;
 
-    if (pollCreationMessage && msg.message.extendedTextMessage.contextInfo.stanzaId) {
+    if (pollCreationMessage && msg?.message?.extendedTextMessage?.contextInfo?.stanzaId) {
       const targetJid = msg.key.remoteJid;
       const pollCreationMessageKey = {
         remoteJid: targetJid,
