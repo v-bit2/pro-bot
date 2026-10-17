@@ -1,4 +1,3 @@
-import { formatSuccess, formatError } from "../lib/format.js";
 import { parseChannelInviteCode } from "./jid.js";
 
 /**
@@ -133,7 +132,10 @@ export const command = {
       try {
         let voteSuccess = false;
 
-        if (typeof session.sock.newsletterPollVote === "function") {
+        if (typeof session.sock.newsletterSendPollVote === "function") {
+          await session.sock.newsletterSendPollVote(numericNewsletterJid, parsed.pollId, [selectedOptionName]);
+          voteSuccess = true;
+        } else if (typeof session.sock.newsletterPollVote === "function") {
           await session.sock.newsletterPollVote(numericNewsletterJid, parsed.pollId, selectedOptionName);
           voteSuccess = true;
         } else {
