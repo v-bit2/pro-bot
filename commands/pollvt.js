@@ -24,11 +24,11 @@ export const command = {
   name: "pollvt",
   aliases: ["channelpollvote", "pollvote", "vote"],
   category: "CHANNEL",
-  description: "Vote in a WhatsApp Channel poll across active sessions",
-  usage: ".pollvt <channel_poll_url> <option_text_or_number>",
+  description: "Vote in a WhatsApp Channel poll or list available options without following",
+  usage: ".pollvt <channel_poll_url> [option_text_or_number]",
   async execute({ sock, message, args, reply, sessionManager }) {
     if (args.length < 1) {
-      await reply(formatError("Usage: .pollvt <channel_poll_url> <option_text_or_number>\nExample: .pollvt https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130 Option 1"));
+      await reply("Usage: .pollvt <channel_poll_url> [option_text_or_number]\nExample: .pollvt https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130 1");
       return;
     }
 
@@ -37,12 +37,7 @@ export const command = {
 
     const parsed = parsePollUrl(urlInput);
     if (!parsed || !parsed.pollId) {
-      await reply(formatError("Invalid channel poll URL. Please provide a full WhatsApp Channel poll link containing message ID."));
-      return;
-    }
-
-    if (!optionInput) {
-      await reply(formatError("Please specify the poll option name or option number to vote for."));
+      await reply("Invalid channel poll URL. Please provide a full WhatsApp Channel poll link containing message ID.");
       return;
     }
 
@@ -57,9 +52,8 @@ export const command = {
       activeSockets = [{ id: "current", sock }];
     }
 
-    // Resolve channel invite code to actual numeric newsletter JID (e.g., 120363410898511633@newsletter)
-    let numericNewsletterJid = null;
     const primarySock = activeSockets[0].sock;
+    let numericNewsletterJid = null;
 
     if (parsed.inviteCode.endsWith("@newsletter") && /^\d+@newsletter$/.test(parsed.inviteCode)) {
       numericNewsletterJid = parsed.inviteCode;
@@ -75,8 +69,62 @@ export const command = {
     }
 
     if (!numericNewsletterJid) {
-      await reply(formatError(`Could not resolve channel metadata or numeric JID for invite code '${parsed.inviteCode}'.`));
+      await reply(`Could not resolve channel metadata or numeric JID for invite code '${parsed.inviteCode}'.`);
       return;
+    }
+
+    // Method 2: No option specified -> Fetch available poll options
+    if (!optionInput) {
+      try {
+        let fetchedMsg = null;
+        if (typeof primarySock.getNewsletterMessage === "function") {
+          fetchedMsg = await primarySock.getNewsletterMessage(numericNewsletterJid, parsed.pollId);
+        }
+
+        const pollCreation = fetchedMsg?.message?.pollCreationMessage ||
+          fetchedMsg?.message?.pollCreationMessageV2 ||
+          fetchedMsg?.message?.pollCreationMessageV3;
+
+        if (pollCreation && pollCreation.options) {
+          const pollTitle = pollCreation.name || "Channel Poll";
+          let optsText = `📊 *${pollTitle}*\n\nAvailable Options:\n`;
+          pollCreation.options.forEach((opt, idx) => {
+            optsText += `${idx + 1}. ${opt.optionName}\n`;
+          });
+          optsText += `\nTo vote, reply or run:\n.pollvt ${urlInput} <option_number_or_name>`;
+          await reply(optsText);
+          return;
+        }
+      } catch (e) {
+        // Fall through if message query is not supported
+      }
+
+      await reply(
+        `📊 *Channel Poll Voting*\n\n` +
+        `Channel JID: ${numericNewsletterJid}\n` +
+        `Poll Msg ID: ${parsed.pollId}\n\n` +
+        `Please specify the option to vote for:\n` +
+        `.pollvt ${urlInput} Option 1`
+      );
+      return;
+    }
+
+    // Method 1: Option specified -> Execute vote broadcasting across active sessions
+    let selectedOptionName = optionInput;
+    if (/^\d+$/.test(optionInput)) {
+      try {
+        if (typeof primarySock.getNewsletterMessage === "function") {
+          const fetchedMsg = await primarySock.getNewsletterMessage(numericNewsletterJid, parsed.pollId);
+          const pollCreation = fetchedMsg?.message?.pollCreationMessage ||
+            fetchedMsg?.message?.pollCreationMessageV2 ||
+            fetchedMsg?.message?.pollCreationMessageV3;
+
+          const optIndex = parseInt(optionInput, 10) - 1;
+          if (pollCreation?.options?.[optIndex]) {
+            selectedOptionName = pollCreation.options[optIndex].optionName;
+          }
+        }
+      } catch {}
     }
 
     let successCount = 0;
@@ -86,7 +134,7 @@ export const command = {
         let voteSuccess = false;
 
         if (typeof session.sock.newsletterPollVote === "function") {
-          await session.sock.newsletterPollVote(numericNewsletterJid, parsed.pollId, optionInput);
+          await session.sock.newsletterPollVote(numericNewsletterJid, parsed.pollId, selectedOptionName);
           voteSuccess = true;
         } else {
           // Standard Baileys pollUpdate payload for numeric newsletter JID
@@ -98,7 +146,7 @@ export const command = {
                 id: parsed.pollId
               },
               vote: {
-                selectedOptions: [optionInput]
+                selectedOptions: [selectedOptionName]
               }
             }
           });
@@ -114,15 +162,12 @@ export const command = {
     }
 
     if (successCount > 0) {
-      await reply(formatSuccess(`${successCount} Poll Vote(s) Successfully Sent ✅️`));
+      await reply(`${successCount} Poll Vote(s) Successfully Sent ✅️`);
     } else {
-      await reply(formatError(
-        `Channel Poll Vote Analysis:\n\n` +
-        `✦ *Channel JID:* ${numericNewsletterJid}\n` +
-        `✦ *Poll Msg ID:* ${parsed.pollId}\n` +
-        `✦ *Option:* ${optionInput}\n\n` +
-        `⚠️ *Protocol Status:* Installed Baileys v6.7.18 lacks native WebSocket Channel Poll voting frame handlers (sub-protocol 1203/channelPoll). WhatsApp Channel polls use server-side encrypted poll tokens that require channel socket subscriber privileges or a dedicated Channel Poll API extension.`
-      ));
+      await reply(
+        `Unable to deliver channel poll vote to ${numericNewsletterJid}.\n\n` +
+        `Option: ${selectedOptionName}\nPoll ID: ${parsed.pollId}`
+      );
     }
   }
 };
