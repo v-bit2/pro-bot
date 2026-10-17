@@ -197,13 +197,12 @@
       color: var(--accent);
     }
 
-    /* Documentation Section */
-    .doc-section {
+    .service-section {
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
-    .doc-title {
+    .service-title {
       font-size: 16px;
       font-weight: 700;
       color: #fff;
@@ -212,38 +211,6 @@
       gap: 8px;
       border-bottom: 1px solid var(--card-border);
       padding-bottom: 10px;
-    }
-    .doc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-    }
-    .doc-card {
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 14px;
-    }
-    .doc-card h4 {
-      font-size: 13px;
-      font-weight: 600;
-      color: #38bdf8;
-      margin-bottom: 6px;
-    }
-    .doc-card p {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-    .cmd-badge {
-      display: inline-block;
-      background: rgba(124, 92, 255, 0.15);
-      color: var(--accent);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 11px;
-      margin-top: 4px;
     }
 
     footer {
@@ -298,7 +265,7 @@
       <div id="msg" class="msg"></div>
     </main>
 
-    <!-- Active Sessions Summary (Privacy Preserving - No Phone Numbers Shown) -->
+    <!-- Active Sessions Summary -->
     <div class="card">
       <div class="sessions-summary">
         <div>
@@ -309,37 +276,38 @@
       </div>
     </div>
 
-    <!-- Bot Documentation & Features Section -->
-    <div class="card doc-section">
-      <div class="doc-title">
-        <span>📖 Bot Features & System Capabilities</span>
+    <!-- Service Testing: Channel Reactions -->
+    <div class="card service-section">
+      <div class="service-title">
+        <span>🔥 Channel Reactions Testing</span>
       </div>
-      <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-        Voltra Mini is a high-performance WhatsApp MD bot built with modular command routing, dynamic presence simulation, persistent MongoDB multi-session auth, and instant message handling.
-      </p>
+      <div class="form-group">
+        <label for="reactUrl">Channel Post URL</label>
+        <input id="reactUrl" type="url" placeholder="https://whatsapp.com/channel/0029VaXXXXXX/101">
+      </div>
+      <div class="form-group">
+        <label for="reactEmoji">Emoji (Optional)</label>
+        <input id="reactEmoji" type="text" placeholder="🔥">
+      </div>
+      <button id="reactBtn">Send Channel Reaction</button>
+      <div id="reactMsg" class="msg"></div>
+    </div>
 
-      <div class="doc-grid">
-        <div class="doc-card">
-          <h4>⚡ General Commands</h4>
-          <p>System metrics, response latency, dynamic menu, and bot info.</p>
-          <div class="cmd-badge">.menu .ping .alive .system</div>
-        </div>
-        <div class="doc-card">
-          <h4>🎨 Media & Voice</h4>
-          <p>Create stickers from images/GIFs, TTS voice notes, and ViewOnce unwrapper.</p>
-          <div class="cmd-badge">.sticker .say .viewonce</div>
-        </div>
-        <div class="doc-card">
-          <h4>👥 Group Management</h4>
-          <p>Admin tools with permission checks, group tagall, and member moderation.</p>
-          <div class="cmd-badge">.tagall .admins .kick .promote</div>
-        </div>
-        <div class="doc-card">
-          <h4>🔒 Security & Privacy</h4>
-          <p>Session data encrypted and protected against unauthorized API exposure.</p>
-          <div class="cmd-badge">Zero Plain Credentials Exposed</div>
-        </div>
+    <!-- Service Testing: Poll Votes -->
+    <div class="card service-section">
+      <div class="service-title">
+        <span>📊 Channel Poll Votes Testing</span>
       </div>
+      <div class="form-group">
+        <label for="pollUrl">Channel Poll URL</label>
+        <input id="pollUrl" type="url" placeholder="https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130">
+      </div>
+      <div class="form-group">
+        <label for="pollOption">Option / Choice</label>
+        <input id="pollOption" type="text" placeholder="Option 1 or 👍">
+      </div>
+      <button id="pollBtn">Send Poll Vote</button>
+      <div id="pollMsg" class="msg"></div>
     </div>
 
     <footer>Voltra Mini Engine • Powered by Baileys MD & Node.js</footer>
@@ -389,7 +357,7 @@ pairBtn.addEventListener("click", async () => {
   setStatus("Generating Code...", "pairing");
 
   try {
-    const res = await fetch("/api/pair", {
+    const res = await fetch("/api/v1/pair/code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone })
@@ -429,6 +397,64 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
   const btn = document.getElementById("copyBtn");
   btn.textContent = "Copied!";
   setTimeout(() => btn.textContent = "Copy Code", 1500);
+});
+
+// Channel Reactions Test Form
+document.getElementById("reactBtn").addEventListener("click", async () => {
+  const url = document.getElementById("reactUrl").value.trim();
+  const emoji = document.getElementById("reactEmoji").value.trim();
+  const reactMsg = document.getElementById("reactMsg");
+  reactMsg.textContent = "";
+
+  if (!url) {
+    reactMsg.textContent = "Please enter a channel post URL.";
+    reactMsg.className = "msg error";
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/v1/services/chreact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, emoji })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Reaction failed.");
+    reactMsg.textContent = data.message || "Reaction sent successfully!";
+    reactMsg.className = "msg success";
+  } catch (err) {
+    reactMsg.textContent = err.message;
+    reactMsg.className = "msg error";
+  }
+});
+
+// Poll Votes Test Form
+document.getElementById("pollBtn").addEventListener("click", async () => {
+  const url = document.getElementById("pollUrl").value.trim();
+  const option = document.getElementById("pollOption").value.trim();
+  const pollMsg = document.getElementById("pollMsg");
+  pollMsg.textContent = "";
+
+  if (!url) {
+    pollMsg.textContent = "Please enter a channel poll URL.";
+    pollMsg.className = "msg error";
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/v1/services/pollvt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, option })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Poll vote failed.");
+    pollMsg.textContent = data.message || "Poll vote sent successfully!";
+    pollMsg.className = "msg success";
+  } catch (err) {
+    pollMsg.textContent = err.message;
+    pollMsg.className = "msg error";
+  }
 });
 
 loadSessions();
