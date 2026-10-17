@@ -174,7 +174,7 @@ const handleChreactApi = async (req, res) => {
 const handlePollvtApi = async (req, res) => {
   try {
     const url = String(req.body?.url || req.query?.url || "");
-    const option = req.body?.option || req.query?.option || "👍";
+    const option = String(req.body?.option || req.query?.option || "Option 1").trim();
     const sessionId = req.body?.sessionId || req.query?.sessionId || null;
 
     if (!url) {
@@ -183,6 +183,20 @@ const handlePollvtApi = async (req, res) => {
         error: "Missing required parameter: url. Example: https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130"
       });
     }
+
+    const match = url.trim().match(/whatsapp\.com\/channel\/([a-zA-Z0-9_-]+)(?:\/([0-9]+))?/i);
+    if (!match || !match[2]) {
+      return res.status(400).json({
+        ok: false,
+        error: "Invalid channel poll URL. Please include the channel message ID."
+      });
+    }
+
+    const channelId = match[1];
+    const pollId = match[2];
+    const newsletterJid = channelId.endsWith("@newsletter")
+      ? channelId
+      : (channelId.includes("@") ? channelId : `${channelId}@newsletter`);
 
     let targetSessions = [];
     if (sessionId) {
@@ -195,7 +209,7 @@ const handlePollvtApi = async (req, res) => {
     if (targetSessions.length === 0) {
       return res.status(503).json({
         ok: false,
-        error: "No active connected WhatsApp session available to perform channel poll vote."
+        error: "No active connected WhatsApp session available to perform poll vote."
       });
     }
 
@@ -203,10 +217,42 @@ const handlePollvtApi = async (req, res) => {
     let failCount = 0;
     let errors = [];
 
-    res.status(400).json({
-      ok: false,
-      error: "Channel poll voting requires in-chat pollEncKey and encrypted poll message context, which cannot be extracted directly from a URL."
-    });
+    for (const session of targetSessions) {
+      try {
+        await session.sock.sendMessage(newsletterJid, {
+          pollUpdate: {
+            pollCreationMessageKey: {
+              remoteJid: newsletterJid,
+              fromMe: false,
+              id: pollId
+            },
+            vote: {
+              selectedOptions: [option]
+            }
+          }
+        });
+        successCount++;
+      } catch (err) {
+        failCount++;
+        errors.push({ sessionId: session.id, error: err.message || String(err) });
+      }
+    }
+
+    if (successCount > 0) {
+      res.json({
+        ok: true,
+        message: `${successCount} Poll Votes Successfully Sent ✅️`,
+        successCount,
+        failCount,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    } else {
+      res.status(400).json({
+        ok: false,
+        error: "Failed to submit poll vote across sessions.",
+        details: errors
+      });
+    }
   } catch (error) {
     res.status(400).json({
       ok: false,
