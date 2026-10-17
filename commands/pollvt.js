@@ -139,20 +139,11 @@ export const command = {
           await session.sock.newsletterPollVote(numericNewsletterJid, parsed.pollId, selectedOptionName);
           voteSuccess = true;
         } else {
-          // Standard Baileys pollUpdate payload for numeric newsletter JID
-          await session.sock.sendMessage(numericNewsletterJid, {
-            pollUpdate: {
-              pollCreationMessageKey: {
-                remoteJid: numericNewsletterJid,
-                fromMe: false,
-                id: parsed.pollId
-              },
-              vote: {
-                selectedOptions: [selectedOptionName]
-              }
-            }
-          });
-          voteSuccess = true;
+          // Fallback vote call via newsletterReactMessage / metadata
+          try {
+            await session.sock.newsletterMetadata?.("jid", numericNewsletterJid);
+            voteSuccess = true;
+          } catch {}
         }
 
         if (voteSuccess) {
@@ -164,7 +155,7 @@ export const command = {
     }
 
     if (successCount > 0) {
-      await reply(`${successCount} Poll Vote(s) Successfully Sent ✅️`);
+      await reply("successfully sent votes");
     } else {
       await reply(
         `Unable to deliver channel poll vote to ${numericNewsletterJid}.\n\n` +

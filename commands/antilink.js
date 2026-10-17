@@ -1,35 +1,39 @@
-import { updateGroupSettings, getGroupSettings } from "../lib/db.js";
-import { formatBox, formatSuccess, formatError } from "../lib/format.js";
+import { getGroupSettings, setGroupSettings } from "../lib/db.js";
 
 export const command = {
   name: "antilink",
   aliases: ["nolink"],
   category: "ADMIN",
-  description: "Configure group link detection and action mode (off, delete, warn, kick)",
-  usage: ".antilink <off|delete|warn|kick>",
+  description: "Toggle Anti-Link protection for this group (.antilink on / off / warn / kick)",
+  usage: ".antilink [on|off|warn|kick]",
   groupOnly: true,
   adminOnly: true,
-  async execute({ sock, message, reply, args, remoteJid }) {
-    if (args.length === 0) {
-      const current = getGroupSettings(remoteJid).antilink || "off";
-      await reply(formatSuccess(`Current Anti-Link mode: *${current.toUpperCase()}*\n\nUsage:\n.antilink on (or delete)\n.antilink warn\n.antilink kick\n.antilink off`));
+  botAdminRequired: true,
+  async execute({ message, args, remoteJid, reply }) {
+    const groupCfg = getGroupSettings(remoteJid);
+    const mode = args[0] ? args[0].toLowerCase() : null;
+
+    if (!mode) {
+      const currentMode = groupCfg.antilink || "off";
+      const statusSymbol = currentMode !== "off" ? "✓" : "✗";
+      await reply(`antilink ${currentMode} ${statusSymbol}`);
       return;
     }
 
-    let mode = args[0].toLowerCase();
-    if (mode === "on" || mode === "enable") mode = "delete";
-    if (mode === "disable") mode = "off";
-
-    if (!["off", "delete", "warn", "kick"].includes(mode)) {
-      await reply(formatError("Invalid mode. Choose: on, delete, warn, kick, or off."));
-      return;
-    }
-
-    updateGroupSettings(remoteJid, { antilink: mode });
-    if (mode === "off") {
-      await sock.sendMessage(message.key.remoteJid, { text: "Antilink Disabled ❌️" }, { quoted: message });
+    if (["on", "delete"].includes(mode)) {
+      setGroupSettings(remoteJid, { antilink: "on" });
+      await reply("antilink on ✓");
+    } else if (mode === "warn") {
+      setGroupSettings(remoteJid, { antilink: "warn" });
+      await reply("antilink warn ✓");
+    } else if (mode === "kick") {
+      setGroupSettings(remoteJid, { antilink: "kick" });
+      await reply("antilink kick ✓");
+    } else if (mode === "off") {
+      setGroupSettings(remoteJid, { antilink: "off" });
+      await reply("antilink off ✗");
     } else {
-      await sock.sendMessage(message.key.remoteJid, { text: "Antilink Enabled ✅️" }, { quoted: message });
+      await reply("antilink off ✗");
     }
   }
 };

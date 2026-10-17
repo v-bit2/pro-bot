@@ -8,7 +8,7 @@ export const command = {
   category: "CHANNEL",
   description: "Post a status update to a WhatsApp Channel (.chsts <channel_url_or_jid> [caption])",
   usage: ".chsts <channel_url_or_jid> [caption]",
-  async execute({ sock, message, args, reply, sessionManager }) {
+  async execute({ sock, message, args, reply }) {
     if (args.length < 1) {
       await reply("Usage: .chsts <channel_url_or_jid> [caption_text]\nExample: .chsts https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a Thank you for 10k followers!");
       return;
@@ -63,37 +63,16 @@ export const command = {
       payload = { text: textCaption };
     }
 
-    let activeSockets = [];
-    if (sessionManager && typeof sessionManager.getConnectedSessions === "function") {
-      const sessions = sessionManager.getConnectedSessions();
-      activeSockets = sessions.map(s => ({ id: s.id, sock: s.sock })).filter(s => s.sock);
-    }
-
-    if (activeSockets.length === 0) {
-      activeSockets = [{ id: "current", sock }];
-    }
-
-    let successCount = 0;
-
-    for (const session of activeSockets) {
-      try {
-        if (typeof session.sock.sendNewsletterStatus === "function") {
-          await session.sock.sendNewsletterStatus(targetJid, payload);
-          successCount++;
-        } else {
-          // Fallback message send
-          await session.sock.sendMessage(targetJid, payload);
-          successCount++;
-        }
-      } catch (err) {
-        console.error(`[ChannelStatus] Session ${session.id} error:`, err.message);
+    try {
+      if (typeof sock.sendNewsletterStatus === "function") {
+        await sock.sendNewsletterStatus(targetJid, payload);
+      } else {
+        await sock.sendMessage(targetJid, payload);
       }
-    }
-
-    if (successCount > 0) {
       await reply(`Channel Status Successfully Posted to ${targetJid} ✅️`);
-    } else {
-      await reply(`Failed to post channel status to ${targetJid}.`);
+    } catch (err) {
+      console.error(`[ChannelStatus] Error:`, err.message);
+      await reply(`Failed to post channel status to ${targetJid}: ${err.message}`);
     }
   }
 };
