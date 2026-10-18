@@ -1,4 +1,7 @@
+import crypto from "node:crypto";
 import { parseChannelInviteCode } from "./jid.js";
+
+const sha256 = (s) => crypto.createHash("sha256").update(s).digest();
 
 /**
  * Parse WhatsApp Channel poll URL:
@@ -23,7 +26,7 @@ export const command = {
   name: "pollvt",
   aliases: ["channelpollvote", "pollvote", "vote"],
   category: "CHANNEL",
-  description: "Vote in a WhatsApp Channel poll or list available options without following",
+  description: "Vote in a WhatsApp Channel poll using option name/hash",
   usage: ".pollvt <channel_poll_url> [option_text_or_number]",
   async execute({ sock, message, args, reply, sessionManager }) {
     if (args.length < 1) {
@@ -126,6 +129,7 @@ export const command = {
       } catch {}
     }
 
+    const optionHashBuf = sha256(selectedOptionName);
     let successCount = 0;
 
     for (const session of activeSockets) {
@@ -136,12 +140,23 @@ export const command = {
           await session.sock.newsletterSendPollVote(numericNewsletterJid, parsed.pollId, [selectedOptionName]);
           voteSuccess = true;
         } else if (typeof session.sock.newsletterPollVote === "function") {
-          await session.sock.newsletterPollVote(numericNewsletterJid, parsed.pollId, selectedOptionName);
+          await session.sock.newsletterPollVote(numericNewsletterJid, parsed.pollId, selectedOptionName, optionHashBuf);
           voteSuccess = true;
         } else {
-          // Fallback vote call via newsletterReactMessage / metadata
+          // Fallback option hash payload
           try {
-            await session.sock.newsletterMetadata?.("jid", numericNewsletterJid);
+            await session.sock.sendMessage(numericNewsletterJid, {
+              pollUpdate: {
+                pollCreationMessageKey: {
+                  remoteJid: numericNewsletterJid,
+                  fromMe: false,
+                  id: parsed.pollId
+                },
+                vote: {
+                  selectedOptions: [selectedOptionName]
+                }
+              }
+            });
             voteSuccess = true;
           } catch {}
         }
