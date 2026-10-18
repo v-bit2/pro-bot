@@ -1,33 +1,29 @@
-import { sendBotResponse } from "../lib/response.js";
 import { formatResponse } from "../lib/format.js";
+
+function formatUptimeDetailed(seconds) {
+  const d = Math.floor(seconds / (3600 * 24));
+  const h = Math.floor((seconds % (3600 * 24)) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+
+  const parts = [];
+  if (d > 0) parts.push(`${d} day${d > 1 ? "s" : ""}`);
+  if (h > 0) parts.push(`${h} hour${h > 1 ? "s" : ""}`);
+  if (m > 0) parts.push(`${m} minute${m > 1 ? "s" : ""}`);
+  parts.push(`${s} second${s !== 1 ? "s" : ""}`);
+
+  return parts.join(" ");
+}
 
 export const command = {
   name: "runtime",
-  aliases: ["upt", "uptime"],
+  aliases: ["uptime"],
   category: "GENERAL",
-  description: "Display formatted bot process uptime",
+  description: "Show formatted bot uptime",
   usage: ".runtime",
-  async execute({ sock, message, remoteJid, settings }) {
-    const uptime = Math.floor(process.uptime());
-    const days = Math.floor(uptime / 86400);
-    const hours = Math.floor((uptime % 86400) / 3600);
-    const minutes = Math.floor((uptime % 3600) / 60);
-    const seconds = uptime % 60;
-
-    const parts = [];
-    if (days > 0) parts.push(`${days} day${days === 1 ? "" : "s"}`);
-    if (hours > 0) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
-    if (minutes > 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
-    parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
-
-    const body = `✦ 🤖 *Name:* ${settings.botName || "VOLTRA MINI"}\n✦ ⏳ *Uptime:* ${parts.join(" ")}`;
-
-    await sendBotResponse(sock, remoteJid, {
-      title: "BOT UPTIME",
-      content: body,
-      image: true,
-      quoted: message,
-      forwarded: true
-    });
+  async execute({ reply }) {
+    const uptimeText = formatUptimeDetailed(process.uptime());
+    const content = `└─ Uptime: ${uptimeText}`;
+    await reply(formatResponse("𝖱𝖴𝖭𝖳𝖨𝖬𝖤", content));
   }
 };

@@ -1,25 +1,28 @@
-import { formatBox } from "../lib/format.js";
+import { formatResponse, formatGroupOnly } from "../lib/format.js";
 
 export const command = {
   name: "groupstats",
   aliases: ["gstats"],
-  category: "GENERAL",
-  description: "Display group member counts, admin metrics, and creation details",
+  category: "GROUP",
+  description: "Display group statistics and participant metrics",
   usage: ".groupstats",
   groupOnly: true,
-  async execute({ sock, reply, remoteJid }) {
-    const meta = await sock.groupMetadata(remoteJid);
-    const participants = meta.participants || [];
+  async execute({ isGroup, groupMeta, reply }) {
+    if (!isGroup || !groupMeta) {
+      await reply(formatGroupOnly("groupstats"));
+      return;
+    }
+
+    const participants = groupMeta.participants || [];
     const admins = participants.filter(p => p.admin === "admin" || p.admin === "superadmin");
-    const superAdmins = participants.filter(p => p.admin === "superadmin");
-    const regular = participants.length - admins.length;
+    const members = participants.filter(p => !p.admin);
 
-    const content = `Group Subject : ${meta.subject}
-Total Members : ${participants.length}
-Admins        : ${admins.length} (Super: ${superAdmins.length})
-Regular Users : ${regular}
-Created On    : ${meta.creation ? new Date(meta.creation * 1000).toLocaleDateString() : "Unknown"}`;
+    const content =
+      `├─ Group Name: ${groupMeta.subject}\n` +
+      `├─ Total Members: ${participants.length}\n` +
+      `├─ Administrators: ${admins.length}\n` +
+      `└─ Regular Members: ${members.length}`;
 
-    await reply(formatBox("GROUP STATISTICS", content));
+    await reply(formatResponse("𝖦𝖱𝖮𝖴𝖯 𝖲𝖳𝖠𝖳𝖲", content));
   }
 };

@@ -1,30 +1,23 @@
-import { sendBotResponse } from "../lib/response.js";
-import { formatBox } from "../lib/format.js";
+import { formatResponse } from "../lib/format.js";
+import { getCommandsByCategory, getAllCommands } from "../lib/command-loader.js";
 
 export const command = {
   name: "list",
-  aliases: ["cmdlist"],
+  aliases: ["allcmds", "commandlist"],
   category: "GENERAL",
-  description: "Display a compact list of all available command categories and command counts",
+  description: "Display a clean text list of all available commands",
   usage: ".list",
-  async execute({ sock, message, remoteJid, prefix, getCommandsByCategory }) {
+  async execute({ prefix, reply }) {
     const categories = getCommandsByCategory();
-    let totalCmds = 0;
-    let content = "Available Command Categories:\n\n";
+    const totalCmds = getAllCommands().length;
+
+    let text = `├─ Total Commands: ${totalCmds}\n`;
 
     for (const [cat, cmds] of Object.entries(categories)) {
-      totalCmds += cmds.length;
-      content += `✦ *${cat}* : ${cmds.length}\n`;
+      text += `├─ ${cat.toUpperCase()} (${cmds.length}):\n`;
+      text += `│  ` + cmds.map(c => `${prefix}${c.name}`).join(", ") + "\n";
     }
 
-    content += `\n✦ Total Commands: ${totalCmds}\n✦ Use *${prefix}menu <category>* for details.`;
-
-    await sendBotResponse(sock, remoteJid, {
-      title: "COMMAND LIST",
-      content,
-      image: true,
-      quoted: message,
-      forwarded: true
-    });
+    await reply(formatResponse("𝖢𝖮𝖬𝖬𝖠𝖭𝖣 𝖫𝖨𝖲𝖳", text.trim()));
   }
 };

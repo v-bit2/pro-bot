@@ -26,7 +26,7 @@ export const command = {
   name: "pollvt",
   aliases: ["channelpollvote", "pollvote", "vote"],
   category: "CHANNEL",
-  description: "Vote in a WhatsApp Channel poll using option name/hash",
+  description: "Vote in a WhatsApp Channel poll",
   usage: ".pollvt <channel_poll_url> [option_text_or_number]",
   async execute({ sock, message, args, reply, sessionManager }) {
     if (args.length < 1) {
@@ -129,7 +129,6 @@ export const command = {
       } catch {}
     }
 
-    const optionHashBuf = sha256(selectedOptionName);
     let successCount = 0;
 
     for (const session of activeSockets) {
@@ -137,13 +136,12 @@ export const command = {
         let voteSuccess = false;
 
         if (typeof session.sock.newsletterSendPollVote === "function") {
-          await session.sock.newsletterSendPollVote(numericNewsletterJid, parsed.pollId, [selectedOptionName]);
+          await session.sock.newsletterSendPollVote(numericNewsletterJid, parsed.pollId, selectedOptionName);
           voteSuccess = true;
         } else if (typeof session.sock.newsletterPollVote === "function") {
-          await session.sock.newsletterPollVote(numericNewsletterJid, parsed.pollId, selectedOptionName, optionHashBuf);
+          await session.sock.newsletterPollVote(numericNewsletterJid, parsed.pollId, selectedOptionName, sha256(selectedOptionName));
           voteSuccess = true;
         } else {
-          // Fallback option hash payload
           try {
             await session.sock.sendMessage(numericNewsletterJid, {
               pollUpdate: {
