@@ -1,27 +1,44 @@
 import os from "node:os";
 import { formatResponse } from "../lib/format.js";
 
+function formatUptime(seconds) {
+  const d = Math.floor(seconds / (3600 * 24));
+  const h = Math.floor((seconds % (3600 * 24)) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+
+  const parts = [];
+  if (d > 0) parts.push(`${d}d`);
+  if (h > 0) parts.push(`${h}h`);
+  if (m > 0) parts.push(`${m}m`);
+  parts.push(`${s}s`);
+
+  return parts.join(" ");
+}
+
 export const command = {
   name: "system",
-  aliases: ["sys", "host"],
+  aliases: ["sys", "sysinfo"],
   category: "SYSTEM",
-  description: "Display host system resource statistics",
+  description: "Display process and system information",
   usage: ".system",
-  async execute({ reply, settings }) {
-    const memory = process.memoryUsage();
-    const totalMemMB = Math.round(os.totalmem() / 1024 / 1024);
-    const freeMemMB = Math.round(os.freemem() / 1024 / 1024);
-    const heapUsedMB = Math.round(memory.heapUsed / 1024 / 1024);
-    const uptime = Math.floor(process.uptime());
+  async execute({ reply, sessionManager }) {
+    const memUsage = process.memoryUsage();
+    const heapUsedMb = Math.round(memUsage.heapUsed / 1024 / 1024);
+    const totalMemMb = Math.round(os.totalmem() / 1024 / 1024);
+    const freeMemMb = Math.round(os.freemem() / 1024 / 1024);
+    const usedMemMb = totalMemMb - freeMemMb;
+    const uptimeText = formatUptime(process.uptime());
 
-    const body = `✦ 🤖 *Bot:* ${settings.botName || "VOLTRA MINI"}
-✦ 🟢 *Status:* Online
-✦ ⏳ *Uptime:* ${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${uptime % 60}s
-✦ 💻 *Platform:* ${os.platform()} (${os.arch()})
-✦ ⚙️ *Node.js:* ${process.version}
-✦ 🧠 *Heap Usage:* ${heapUsedMB} MB
-✦ 📊 *System Memory:* ${totalMemMB - freeMemMB} / ${totalMemMB} MB`;
+    const content =
+      `├─ 🤖 *𝖡𝗈𝗍:* 𝖵𝗈𝗅𝗍𝗋𝖺 𝖬𝗂𝗇𝗂\n` +
+      `├─ 🟢 *𝖲𝗍𝖺𝗍𝗎𝗌:* 𝖮𝗇𝗅𝗂𝗇𝖾\n` +
+      `├─ ⏳ *𝖴𝗉𝗍𝗂𝗆𝖾:* ${uptimeText}\n` +
+      `├─ 💻 *𝖯𝗅𝖺𝗍𝖿𝗈𝗋𝗆:* ${os.platform()} (${os.arch()})\n` +
+      `├─ ⚙️ *𝖭𝗈𝖽𝖾.𝗃𝗌:* ${process.version}\n` +
+      `├─ 🧠 *𝖧𝖾𝖺𝗉 𝖴𝗌𝖺𝗀𝖾:* ${heapUsedMb} 𝖬𝖡\n` +
+      `└─ 📊 *𝖲𝗒𝗌𝗍𝖾𝗆 𝖬𝖾𝗆𝗈𝗋𝗒:* ${usedMemMb} / ${totalMemMb} 𝖬𝖡 🤖`;
 
-    await reply(formatResponse(body, "SYSTEM STATUS"));
+    await reply(formatResponse("SYSTEM", content));
   }
 };

@@ -1,4 +1,4 @@
-import { generateEphotoEffect, EPHOTO_EFFECTS } from "../lib/textmaker.js";
+import { generateTextmakerImage } from "../lib/textmaker.js";
 
 function createTextmakerCommand(name, effectKey, description) {
   return {
@@ -17,7 +17,7 @@ function createTextmakerCommand(name, effectKey, description) {
         await reply("⏳ *Generating effect... Please wait.*");
 
         try {
-          const imageBuffer = await generateEphotoEffect(effectKey, textInput);
+          const imageBuffer = await generateTextmakerImage(effectKey, textInput);
 
           await sock.sendMessage(remoteJid, {
             image: imageBuffer,
