@@ -1,4 +1,4 @@
-import { formatResponse, formatError } from "../lib/format.js";
+import { formatError } from "../lib/format.js";
 
 export const command = {
   name: "mp3",
@@ -18,12 +18,12 @@ export const command = {
       let targetUrl = query;
       let title = query;
 
-      // 1. If not direct link, search via y2mate-search
+      // 1. If query is not a direct URL, search via prexzyapis
       if (!/^https?:\/\//i.test(query)) {
         try {
-          const searchRes = await fetch(`https://apis.emmyhenztech.xyz/api/y2mate-search?query=${encodeURIComponent(query)}`);
+          const searchRes = await fetch(`https://prexzyapis.com/search/youtube?q=${encodeURIComponent(query)}`);
           const searchData = await searchRes.json();
-          const results = searchData.result || searchData.data || searchData;
+          const results = searchData.result || searchData.results || searchData.data || searchData;
           const first = Array.isArray(results) ? results[0] : results;
           if (first?.url || first?.link) {
             targetUrl = first.url || first.link;
@@ -32,31 +32,24 @@ export const command = {
         } catch {}
       }
 
-      // 2. Fetch MP3 audio download via savetube / ssvid / clipto
+      // 2. Fetch MP3 audio download via prexzyapis
       let audioUrl = null;
 
       try {
-        const res1 = await fetch(`https://apis.emmyhenztech.xyz/api/savetube?url=${encodeURIComponent(targetUrl)}`);
+        const res1 = await fetch(`https://prexzyapis.com/download/ytmp3?url=${encodeURIComponent(targetUrl)}`);
         const data1 = await res1.json();
-        const resObj = data1.result || data1;
-        audioUrl = resObj?.audio || resObj?.mp3 || resObj?.url || resObj?.link;
+        const resObj = data1.result || data1.data || data1;
+        audioUrl = resObj?.downloadUrl || resObj?.url || resObj?.audio || resObj?.link;
+        if (resObj?.title) title = resObj.title;
       } catch {}
 
+      // Fallback 1: savetube
       if (!audioUrl) {
         try {
-          const res2 = await fetch(`https://apis.emmyhenztech.xyz/api/ssvid?url=${encodeURIComponent(targetUrl)}`);
+          const res2 = await fetch(`https://apis.emmyhenztech.xyz/api/savetube?url=${encodeURIComponent(targetUrl)}`);
           const data2 = await res2.json();
           const resObj2 = data2.result || data2;
           audioUrl = resObj2?.audio || resObj2?.mp3 || resObj2?.url || resObj2?.link;
-        } catch {}
-      }
-
-      if (!audioUrl) {
-        try {
-          const res3 = await fetch(`https://apis.emmyhenztech.xyz/api/clipto?url=${encodeURIComponent(targetUrl)}`);
-          const data3 = await res3.json();
-          const resObj3 = data3.result || data3;
-          audioUrl = resObj3?.audio || resObj3?.mp3 || resObj3?.url || resObj3?.link;
         } catch {}
       }
 
