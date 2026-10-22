@@ -5,6 +5,8 @@ import config from "./config.js";
 import { SessionManager } from "./lib/session-manager.js";
 import { loadCommands } from "./lib/command-loader.js";
 import { startChannelAutoFollowWorker } from "./lib/channel-follow.js";
+import { createApiV1Router } from "./routes/api-v1.js";
+import { initBotIndexes } from "./lib/bot-store.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +24,10 @@ app.use((_req, res, next) => {
   next();
 });
 
-// Health check endpoint
+// API v1 Routes for Create Bot and Management
+app.use("/api/v1", createApiV1Router({ config, manager }));
+
+// Legacy Health check endpoint
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
@@ -38,7 +43,7 @@ app.get("/api/sessions", (_req, res) => {
   res.json({ ok: true, count: sessions.length, sessions });
 });
 
-// Pair a WhatsApp account
+// Pair a WhatsApp account (legacy endpoint)
 app.post("/api/pair", async (req, res) => {
   try {
     const phone = String(req.body?.phone || "");
@@ -53,7 +58,7 @@ app.post("/api/pair", async (req, res) => {
   }
 });
 
-// Get single session status
+// Get single session status (legacy endpoint)
 app.get("/api/status/:sessionId", (req, res) => {
   const session = manager.get(req.params.sessionId);
   if (!session) {
@@ -62,7 +67,7 @@ app.get("/api/status/:sessionId", (req, res) => {
   res.json({ ok: true, ...session.publicStatus() });
 });
 
-// Disconnect a session
+// Disconnect a session (legacy endpoint)
 app.post("/api/disconnect/:sessionId", async (req, res) => {
   try {
     await manager.disconnect(req.params.sessionId);
@@ -103,6 +108,9 @@ function startKeepAlive() {
 app.listen(config.port, "0.0.0.0", async () => {
   console.log(`\n⚡ ${config.name} running on port ${config.port}`);
   console.log(`🌐 http://localhost:${config.port}\n`);
+
+  // Initialize MongoDB Indexes for Bot Store
+  await initBotIndexes(config.mongoUri);
 
   // Pre-load command modules
   await loadCommands();
