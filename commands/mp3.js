@@ -1,75 +1,239 @@
-import { formatError } from "../lib/format.js";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import axios from "axios";
+import yts from "yt-search";
+import { toAudio } from "../lib/converter.js";
+
+const AXIOS_DEFAULTS = {
+  timeout: 60000,
+  headers: {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*"
+  }
+};
+
+async function tryRequest(getter, attempts = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await getter();
+    } catch (err) {
+      lastError = err;
+      if (attempt < attempts) {
+        await new Promise(r => setTimeout(r, 1000 * attempt));
+      }
+    }
+  }
+  throw lastError;
+}
+
+// EliteProTech API - Primary
+async function getEliteProTechDownloadByUrl(youtubeUrl) {
+  const apiUrl = `https://prexzyapis.com/download/ytmp3?url=${encodeURIComponent(youtubeUrl)}&format=mp3`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  if (res?.data?.success && (res?.data?.downloadURL || res?.data?.downloadUrl)) {
+    return {
+      download: res.data.downloadURL || res.data.downloadUrl,
+      title: res.data.title
+    };
+  }
+  throw new Error("EliteProTech ytdown returned no download");
+}
+
+async function getYupraDownloadByUrl(youtubeUrl) {
+  const apiUrl = `https://api.yupra.my.id/api/downloader/ytmp3?url=${encodeURIComponent(youtubeUrl)}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  if (res?.data?.success && res?.data?.data?.download_url) {
+    return {
+      download: res.data.data.download_url,
+      title: res.data.data.title,
+      thumbnail: res.data.data.thumbnail
+    };
+  }
+  throw new Error("Yupra returned no download");
+}
+
+async function getOkatsuDownloadByUrl(youtubeUrl) {
+  const apiUrl = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp3?url=${encodeURIComponent(youtubeUrl)}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  if (res?.data?.dl) {
+    return {
+      download: res.data.dl,
+      title: res.data.title,
+      thumbnail: res.data.thumb
+    };
+  }
+  throw new Error("Okatsu ytmp3 returned no download");
+}
 
 export const command = {
   name: "mp3",
   aliases: ["song", "music", "play"],
   category: "DOWNLOADER",
-  description: "Search and download music/songs by title and artist",
-  usage: ".mp3 <song_name_with_artist>",
+  description: "Search and download YouTube MP3 songs (.mp3 <song_name_or_url>)",
+  usage: ".mp3 <song_name_or_url>",
   async execute({ sock, message, args, reply, remoteJid }) {
     if (args.length === 0) {
-      await reply(formatError("Please specify a song name and artist.\n\nExample: .mp3 Drake - Hotline Bling"));
+      await reply("Usage: .mp3 <song name or YouTube link>\nExample: .mp3 Drake - Hotline Bling");
       return;
     }
 
-    const query = args.join(" ").trim();
+    const textInput = args.join(" ").trim();
 
     try {
-      let targetUrl = query;
-      let title = query;
-
-      // 1. If query is not a direct URL, search via prexzyapis
-      if (!/^https?:\/\//i.test(query)) {
-        try {
-          const searchRes = await fetch(`https://prexzyapis.com/search/youtube?q=${encodeURIComponent(query)}`);
-          const searchData = await searchRes.json();
-          const results = searchData.result || searchData.results || searchData.data || searchData;
-          const first = Array.isArray(results) ? results[0] : results;
-          if (first?.url || first?.link) {
-            targetUrl = first.url || first.link;
-            title = first.title || query;
-          }
-        } catch {}
+      let video;
+      if (textInput.includes("youtube.com") || textInput.includes("youtu.be")) {
+        video = { url: textInput, title: "YouTube Video", timestamp: "0:00" };
+      } else {
+        const search = await yts(textInput);
+        if (!search || !search.videos.length) {
+          await reply("No results found.");
+          return;
+        }
+        video = search.videos[0];
       }
 
-      // 2. Fetch MP3 audio download via prexzyapis
-      let audioUrl = null;
-
-      try {
-        const res1 = await fetch(`https://prexzyapis.com/download/ytmp3?url=${encodeURIComponent(targetUrl)}`);
-        const data1 = await res1.json();
-        const resObj = data1.result || data1.data || data1;
-        audioUrl = resObj?.downloadUrl || resObj?.url || resObj?.audio || resObj?.link;
-        if (resObj?.title) title = resObj.title;
-      } catch {}
-
-      // Fallback 1: savetube
-      if (!audioUrl) {
-        try {
-          const res2 = await fetch(`https://apis.emmyhenztech.xyz/api/savetube?url=${encodeURIComponent(targetUrl)}`);
-          const data2 = await res2.json();
-          const resObj2 = data2.result || data2;
-          audioUrl = resObj2?.audio || resObj2?.mp3 || resObj2?.url || resObj2?.link;
-        } catch {}
-      }
-
-      if (audioUrl) {
+      // Inform user with thumbnail & details
+      if (video.thumbnail) {
         await sock.sendMessage(
           remoteJid,
           {
-            audio: { url: audioUrl },
-            mimetype: "audio/mp4",
-            fileName: `${title}.mp3`,
-            caption: "Successfully Downloaded ✅️"
+            image: { url: video.thumbnail },
+            caption: `🎵 Downloading: *${video.title}*\n⏱ Duration: ${video.timestamp || "N/A"}`
           },
           { quoted: message }
         );
       } else {
-        await reply(formatError(`Could not retrieve audio download for '${query}'. Please try another search term.`));
+        await reply(`🎵 Downloading: *${video.title}*`);
       }
+
+      // Try multiple APIs with fallback chain: EliteProTech -> Yupra -> Okatsu
+      let audioData = null;
+      let audioBuffer = null;
+      let downloadSuccess = false;
+
+      const apiMethods = [
+        { name: "EliteProTech", method: () => getEliteProTechDownloadByUrl(video.url) },
+        { name: "Yupra", method: () => getYupraDownloadByUrl(video.url) },
+        { name: "Okatsu", method: () => getOkatsuDownloadByUrl(video.url) }
+      ];
+
+      for (const apiMethod of apiMethods) {
+        try {
+          audioData = await apiMethod.method();
+          const audioUrl = audioData.download || audioData.dl || audioData.url;
+
+          if (!audioUrl) continue;
+
+          try {
+            const audioResponse = await axios.get(audioUrl, {
+              responseType: "arraybuffer",
+              timeout: 90000,
+              maxContentLength: Infinity,
+              maxBodyLength: Infinity,
+              decompress: true,
+              validateStatus: s => s >= 200 && s < 400,
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "*/*",
+                "Accept-Encoding": "identity"
+              }
+            });
+            audioBuffer = Buffer.from(audioResponse.data);
+
+            if (audioBuffer && audioBuffer.length > 0) {
+              downloadSuccess = true;
+              break;
+            }
+          } catch (downloadErr) {
+            try {
+              const audioResponse = await axios.get(audioUrl, {
+                responseType: "stream",
+                timeout: 90000,
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity,
+                validateStatus: s => s >= 200 && s < 400,
+                headers: {
+                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                  "Accept": "*/*",
+                  "Accept-Encoding": "identity"
+                }
+              });
+              const chunks = [];
+              await new Promise((res, rej) => {
+                audioResponse.data.on("data", c => chunks.push(c));
+                audioResponse.data.on("end", res);
+                audioResponse.data.on("error", rej);
+              });
+              audioBuffer = Buffer.concat(chunks);
+
+              if (audioBuffer && audioBuffer.length > 0) {
+                downloadSuccess = true;
+                break;
+              }
+            } catch {}
+          }
+        } catch {}
+      }
+
+      if (!downloadSuccess || !audioBuffer || audioBuffer.length === 0) {
+        throw new Error("All download sources failed. The content may be unavailable or blocked.");
+      }
+
+      // Detect file format signature
+      const firstBytes = audioBuffer.slice(0, 12);
+      const hexSignature = firstBytes.toString("hex");
+      const asciiSignature = firstBytes.toString("ascii", 4, 8);
+
+      let fileExtension = "mp3";
+
+      if (asciiSignature === "ftyp" || hexSignature.startsWith("000000")) {
+        fileExtension = "m4a";
+      } else if (audioBuffer.toString("ascii", 0, 3) === "ID3" || (audioBuffer[0] === 0xFF && (audioBuffer[1] & 0xE0) === 0xE0)) {
+        fileExtension = "mp3";
+      } else if (audioBuffer.toString("ascii", 0, 4) === "OggS") {
+        fileExtension = "ogg";
+      } else if (audioBuffer.toString("ascii", 0, 4) === "RIFF") {
+        fileExtension = "wav";
+      } else {
+        fileExtension = "m4a";
+      }
+
+      let finalBuffer = audioBuffer;
+      let finalMimetype = "audio/mpeg";
+      let finalExtension = "mp3";
+
+      if (fileExtension !== "mp3") {
+        try {
+          finalBuffer = await toAudio(audioBuffer, fileExtension);
+          finalMimetype = "audio/mpeg";
+          finalExtension = "mp3";
+        } catch {}
+      }
+
+      const songTitle = audioData?.title || video.title || "song";
+      const cleanFileName = `${songTitle.replace(/[^\w\s-]/g, "")}.${finalExtension}`;
+
+      await sock.sendMessage(
+        remoteJid,
+        {
+          audio: finalBuffer,
+          mimetype: finalMimetype,
+          fileName: cleanFileName,
+          ptt: false
+        },
+        { quoted: message }
+      );
     } catch (err) {
-      console.error("[Music Downloader Error]", err);
-      await reply(formatError(`Failed to download music: ${err.message || err}`));
+      console.error("Song command error:", err);
+      let errorMessage = "❌ Failed to download song.";
+      if (err.message && err.message.includes("blocked")) {
+        errorMessage = "❌ Download blocked. The content may be unavailable in your region.";
+      } else if (err.message && err.message.includes("All download sources failed")) {
+        errorMessage = "❌ All download sources failed. The content may be unavailable or blocked.";
+      }
+      await reply(errorMessage);
     }
   }
 };
