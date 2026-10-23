@@ -1,6 +1,6 @@
 import axios from "axios";
 import yts from "yt-search";
-import { toAudio } from "../lib/converter.js";
+import { toMp3 } from "../lib/converter.js";
 
 const AXIOS_DEFAULTS = {
   timeout: 60000,
@@ -208,19 +208,19 @@ export const command = {
         throw new Error("All download sources failed. The content may be unavailable or blocked.");
       }
 
-      // Convert audio stream to WhatsApp playable OGG Opus voice note
-      let opusBuffer;
+      // Convert audio stream to clean standard MP3 audio with full duration metadata
+      let mp3Buffer;
       try {
-        opusBuffer = await toAudio(rawBuffer, "mp3");
+        mp3Buffer = await toMp3(rawBuffer, "mp3");
       } catch {
-        opusBuffer = rawBuffer;
+        mp3Buffer = rawBuffer;
       }
 
       await sock.sendMessage(
         remoteJid,
         {
-          audio: opusBuffer,
-          mimetype: "audio/ogg; codecs=opus",
+          audio: mp3Buffer,
+          mimetype: "audio/mpeg",
           ptt: false
         },
         { quoted: message }

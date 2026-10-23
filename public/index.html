@@ -34,7 +34,7 @@
       color: var(--text-main);
     }
     .container {
-      width: min(560px, 100%);
+      width: min(680px, 100%);
       display: flex;
       flex-direction: column;
       gap: 24px;
@@ -165,6 +165,11 @@
       color: #e2e8f0;
       box-shadow: var(--btn-shadow);
     }
+    .btn-danger {
+      background: linear-gradient(145deg, #ef4444, #dc2626);
+      color: #fff;
+      box-shadow: var(--btn-shadow);
+    }
 
     .code-display {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -184,16 +189,16 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 14px;
+      padding: 6px 12px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       background: #12141a;
       box-shadow: var(--input-well);
     }
     .badge-dot {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--text-muted);
     }
@@ -222,6 +227,56 @@
     .metric-val { font-size: 22px; font-weight: 800; color: #fff; }
     .metric-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
+    /* API Docs Styling */
+    .api-card {
+      background: #12141a;
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 12px;
+      box-shadow: var(--input-well);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .api-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .method-tag {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .method-tag.post { background: #6366f1; color: #fff; }
+    .method-tag.get { background: #10b981; color: #fff; }
+    .method-tag.delete { background: #ef4444; color: #fff; }
+    .api-path { font-family: monospace; font-size: 14px; font-weight: 700; color: #38bdf8; }
+    .code-block {
+      background: #0b0c0f;
+      border-radius: 10px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #a7f3d0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Admin Session Monitor List */
+    .session-item {
+      background: #12141a;
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 10px;
+      box-shadow: var(--input-well);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     footer {
       text-align: center;
       font-size: 12px;
@@ -249,6 +304,8 @@
       <button class="nav-tab" onclick="switchTab('reactions')">🔥 Reactions</button>
       <button class="nav-tab" onclick="switchTab('poll')">📊 Poll Votes</button>
       <button class="nav-tab" onclick="switchTab('settings')">⚙️ Settings</button>
+      <button class="nav-tab" onclick="switchTab('docs')">📖 API Docs</button>
+      <button class="nav-tab" onclick="switchTab('admin')">🛡️ Admin</button>
     </nav>
 
     <!-- Tab 1: Home Dashboard -->
@@ -384,6 +441,95 @@
       </div>
     </section>
 
+    <!-- Tab 6: API Documentation -->
+    <section id="tab-docs" class="tab-content">
+      <div class="card">
+        <div style="font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 6px;">⚡ Voltra MD REST API Reference</div>
+        <p style="font-size: 13px; color: var(--text-muted);">Integrate WhatsApp pairing, channel auto-reactions, poll voting, and session settings directly into your applications.</p>
+
+        <!-- 1. Pair Code -->
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST</span>
+            <span class="api-path">/api/v1/pair/code</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted);">Request a WhatsApp 8-character pairing code for device connection.</p>
+          <div class="code-block">curl -X POST https://your-domain.com/api/v1/pair/code \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "263786624966"}'</div>
+        </div>
+
+        <!-- 2. Channel Reaction -->
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST</span>
+            <span class="api-path">/api/v1/services/chreact</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted);">React to a WhatsApp channel post across all active connected sessions.</p>
+          <div class="code-block">curl -X POST https://your-domain.com/api/v1/services/chreact \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://whatsapp.com/channel/0029VaXXXX/101", "emoji": "🔥"}'</div>
+        </div>
+
+        <!-- 3. Channel Poll Vote -->
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST</span>
+            <span class="api-path">/api/v1/services/pollvt</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted);">Submit poll votes on a WhatsApp channel poll post.</p>
+          <div class="code-block">curl -X POST https://your-domain.com/api/v1/services/pollvt \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://whatsapp.com/channel/0029Vb8VyAo/130", "option": "Option 1"}'</div>
+        </div>
+
+        <!-- 4. Settings Management -->
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST</span>
+            <span class="api-path">/api/v1/settings/mode</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted);">Update bot operating mode requiring phone number & session PIN.</p>
+          <div class="code-block">curl -X POST "https://your-domain.com/api/v1/settings/mode?session=263786624966&pin=12345678" \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "public"}'</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 7: Admin Panel -->
+    <section id="tab-admin" class="tab-content">
+      <div class="card" id="adminAuthCard">
+        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">🛡️ Secure Admin Portal</div>
+        <div class="form-group">
+          <label for="adminUser">Admin Username</label>
+          <input id="adminUser" type="text" placeholder="voltra">
+        </div>
+        <div class="form-group">
+          <label for="adminPass">Admin Password</label>
+          <input id="adminPass" type="password" placeholder="••••••••">
+        </div>
+        <div style="margin-top: 18px;">
+          <button id="loginAdminBtn">Login to Admin Portal</button>
+        </div>
+        <div id="adminAuthMsg" class="msg"></div>
+      </div>
+
+      <div class="card" id="adminPanelCard" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div style="font-size: 16px; font-weight: 800; color: #fff;">Server & Session Monitor</div>
+          <button id="logoutAdminBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Logout</button>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Active Server Sessions</div>
+          <div id="sessionListContainer" style="margin-top: 8px;">
+            <p style="font-size: 13px; color: var(--text-muted);">Loading sessions...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <footer>Voltra MD Engine • Tactile Control Center</footer>
   </div>
 
@@ -443,93 +589,88 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
   setTimeout(() => btn.textContent = "Copy Code", 1500);
 });
 
-// Settings Login Authentication
-let authenticatedSession = null;
-let authenticatedPin = null;
+// Admin Panel Logic
+let adminToken = null;
 
-document.getElementById("loginSettingsBtn").addEventListener("click", async () => {
-  const number = document.getElementById("authPhone").value.trim().replace(/\D/g, "");
-  const password = document.getElementById("authPin").value.trim();
-  const authMsg = document.getElementById("authMsg");
-  authMsg.textContent = "";
-
-  if (!number || !password) {
-    authMsg.textContent = "Please enter phone number and 8-digit PIN password.";
-    authMsg.className = "msg error";
-    return;
-  }
+document.getElementById("loginAdminBtn").addEventListener("click", async () => {
+  const username = document.getElementById("adminUser").value.trim();
+  const password = document.getElementById("adminPass").value.trim();
+  const msg = document.getElementById("adminAuthMsg");
+  msg.textContent = "";
 
   try {
-    const res = await fetch(`/api/v1/settings/auth?number=${number}&password=${password}`);
+    const res = await fetch("/api/v1/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
     const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || "Authentication failed.");
+    if (!res.ok || !data.ok) throw new Error(data.error || "Admin authentication failed.");
 
-    authenticatedSession = number;
-    authenticatedPin = password;
+    adminToken = data.adminToken;
+    document.getElementById("adminAuthCard").style.display = "none";
+    document.getElementById("adminPanelCard").style.display = "block";
 
-    document.getElementById("settingsAuthCard").style.display = "none";
-    document.getElementById("settingsPanelCard").style.display = "block";
-
-    if (data.session?.settings) {
-      document.getElementById("setMode").value = data.session.settings.mode || "public";
-      document.getElementById("setPrefix").value = data.session.settings.prefix || ".";
-      document.getElementById("setAntiCall").value = data.session.settings.antiCall || "off";
-    }
+    loadAdminSessions();
   } catch (err) {
-    authMsg.textContent = err.message;
-    authMsg.className = "msg error";
+    msg.textContent = err.message;
+    msg.className = "msg error";
   }
 });
 
-document.getElementById("logoutSettingsBtn").addEventListener("click", () => {
-  authenticatedSession = null;
-  authenticatedPin = null;
-  document.getElementById("settingsAuthCard").style.display = "block";
-  document.getElementById("settingsPanelCard").style.display = "none";
+document.getElementById("logoutAdminBtn").addEventListener("click", () => {
+  adminToken = null;
+  document.getElementById("adminAuthCard").style.display = "block";
+  document.getElementById("adminPanelCard").style.display = "none";
 });
 
-document.getElementById("saveSettingsBtn").addEventListener("click", async () => {
-  const mode = document.getElementById("setMode").value;
-  const prefix = document.getElementById("setPrefix").value.trim();
-  const antiCall = document.getElementById("setAntiCall").value;
-  const whitelistNum = document.getElementById("setAntiCallWl").value.trim().replace(/\D/g, "");
-  const settingsMsg = document.getElementById("settingsMsg");
-  settingsMsg.textContent = "";
+async function loadAdminSessions() {
+  if (!adminToken) return;
+  const container = document.getElementById("sessionListContainer");
 
   try {
-    await fetch(`/api/v1/settings/mode?session=${authenticatedSession}&pin=${authenticatedPin}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode })
+    const res = await fetch("/api/v1/admin/sessions", {
+      headers: { "Authorization": `Bearer ${adminToken}` }
     });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "Failed to load sessions.");
 
-    await fetch(`/api/v1/settings/prefix?session=${authenticatedSession}&pin=${authenticatedPin}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prefix })
-    });
-
-    await fetch(`/api/v1/settings/anticall?session=${authenticatedSession}&pin=${authenticatedPin}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ antiCall })
-    });
-
-    if (whitelistNum) {
-      await fetch(`/api/v1/settings/anticallwl?session=${authenticatedSession}&pin=${authenticatedPin}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number: whitelistNum, action: "add" })
-      });
+    if (!data.sessions || data.sessions.length === 0) {
+      container.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">No active or stored sessions found.</p>`;
+      return;
     }
 
-    settingsMsg.textContent = "Settings saved successfully ✓";
-    settingsMsg.className = "msg success";
+    container.innerHTML = data.sessions.map(s => `
+      <div class="session-item">
+        <div>
+          <div style="font-weight: 800; font-size: 14px; color: #fff;">${s.sessionId}</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Phone: +${s.phone || 'N/A'} • Status: <span style="color: #38bdf8;">${s.status}</span></div>
+        </div>
+        <button class="btn-danger" style="width: auto; padding: 6px 12px; font-size: 12px;" onclick="deleteAdminSession('${s.sessionId}')">Purge & Delete</button>
+      </div>
+    `).join('');
   } catch (err) {
-    settingsMsg.textContent = err.message;
-    settingsMsg.className = "msg error";
+    container.innerHTML = `<p style="font-size: 13px; color: var(--danger);">${err.message}</p>`;
   }
-});
+}
+
+async function deleteAdminSession(sessionId) {
+  if (!confirm(`Are you sure you want to permanently delete session '${sessionId}' from server & MongoDB?`)) return;
+
+  try {
+    const res = await fetch(`/api/v1/admin/sessions/${sessionId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${adminToken}` }
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "Failed to delete session.");
+
+    alert(data.message || "Session deleted.");
+    loadAdminSessions();
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+}
 
 loadSystemStats();
 setInterval(loadSystemStats, 10000);

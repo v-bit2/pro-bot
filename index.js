@@ -93,6 +93,92 @@ const handlePairQrApi = async (req, res) => {
 app.post("/api/v1/pair/qr", handlePairQrApi);
 app.post("/api/v1/pairing/qr", handlePairQrApi);
 
+// --- ADMIN AUTHENTICATION & SESSION MANAGEMENT ENDPOINTS ---
+const ADMIN_USERNAME = "voltra";
+const ADMIN_PASSWORD = "viralbit2026";
+const ADMIN_TOKENS = new Set();
+
+function verifyAdminAuth(req, res) {
+  const token = (req.headers.authorization || "").replace("Bearer ", "").trim() ||
+                req.body?.adminToken || req.query?.adminToken;
+  if (!token || !ADMIN_TOKENS.has(token)) {
+    res.status(401).json({ ok: false, error: "Unauthorized: Admin authentication required." });
+    return false;
+  }
+  return true;
+}
+
+// POST /api/v1/admin/login
+app.post("/api/v1/admin/login", (req, res) => {
+  const { username, password } = req.body || {};
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    const adminToken = "admin_" + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    ADMIN_TOKENS.add(adminToken);
+    return res.json({
+      ok: true,
+      message: "Admin authentication successful ✓",
+      adminToken
+    });
+  }
+  return res.status(401).json({ ok: false, error: "Invalid admin username or password." });
+});
+
+// GET /api/v1/admin/sessions - List active and stored sessions for admin
+app.get("/api/v1/admin/sessions", (req, res) => {
+  if (!verifyAdminAuth(req, res)) return;
+
+  const sessions = Array.from(manager.sessions.values()).map(s => {
+    const pub = s.publicStatus();
+    return {
+      ...pub,
+      dir: s.dir,
+      registered: s.registered,
+      lastPairingCode: s.lastPairingCode
+    };
+  });
+
+  res.json({
+    ok: true,
+    count: sessions.length,
+    sessions,
+    system: {
+      memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + " MB",
+      uptime: Math.floor(process.uptime()) + "s",
+      nodeVersion: process.version
+    }
+  });
+});
+
+// DELETE /api/v1/admin/sessions/:sessionId - Terminate, disconnect, and purge session from MongoDB and server
+app.delete("/api/v1/admin/sessions/:sessionId", async (req, res) => {
+  if (!verifyAdminAuth(req, res)) return;
+
+  const sessionId = req.params.sessionId;
+  try {
+    const session = manager.get(sessionId);
+    if (session) {
+      await session.logout();
+      manager.sessions.delete(session.id);
+    } else {
+      // Force delete session from Mongo if not in memory
+      if (config.mongoUri) {
+        const { deleteSession } = await import("./lib/mongo-store.js");
+        await deleteSession(sessionId, config.mongoUri);
+      }
+    }
+
+    res.json({
+      ok: true,
+      message: `Session '${sessionId}' successfully deleted and purged from server & MongoDB ✓`
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message || `Failed to delete session '${sessionId}'.`
+    });
+  }
+});
+
 // Get single session status
 app.get("/api/status/:sessionId", (req, res) => {
   const session = manager.get(req.params.sessionId);
