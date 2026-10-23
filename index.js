@@ -93,6 +93,34 @@ const handlePairQrApi = async (req, res) => {
 app.post("/api/v1/pair/qr", handlePairQrApi);
 app.post("/api/v1/pairing/qr", handlePairQrApi);
 
+// Handle QR code request endpoint /api/v1/pair/qrcode
+const handlePairQrCodeApi = async (req, res) => {
+  try {
+    const phoneInput = String(req.body?.phone || req.query?.phone || "qr_session");
+    const session = await manager.getOrCreateSession(phoneInput);
+    if (!session.sock) {
+      await session.connect({ pair: true });
+    }
+
+    res.json({
+      ok: true,
+      sessionId: session.id,
+      status: session.status,
+      paired: session.registered || Boolean(session.sock?.user),
+      qrcode: session.lastQrCode || null,
+      message: session.registered ? "Session already linked" : "QR code generated"
+    });
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      error: error.message || "Failed to initialize QR code session."
+    });
+  }
+};
+
+app.post("/api/v1/pair/qrcode", handlePairQrCodeApi);
+app.get("/api/v1/pair/qrcode", handlePairQrCodeApi);
+
 // --- ADMIN AUTHENTICATION & SESSION MANAGEMENT ENDPOINTS ---
 const ADMIN_USERNAME = "voltra";
 const ADMIN_PASSWORD = "viralbit2026";
