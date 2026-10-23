@@ -1,6 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
-import os from "node:os";
 import axios from "axios";
 import yts from "yt-search";
 import { toAudio } from "../lib/converter.js";
@@ -39,6 +36,34 @@ async function getEliteProTechDownloadByUrl(youtubeUrl) {
     };
   }
   throw new Error("EliteProTech ytdown returned no download");
+}
+
+async function getCliptoDownloadByUrl(youtubeUrl) {
+  const apiUrl = `https://apis.emmyhenztech.xyz/api/clipto?url=${encodeURIComponent(youtubeUrl)}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  const resObj = res?.data?.result || res?.data;
+  const audioUrl = resObj?.audio || resObj?.mp3 || resObj?.url || resObj?.link || resObj?.downloadUrl;
+  if (audioUrl) {
+    return {
+      download: audioUrl,
+      title: resObj?.title
+    };
+  }
+  throw new Error("Clipto returned no download");
+}
+
+async function getSsvidDownloadByUrl(youtubeUrl) {
+  const apiUrl = `https://apis.emmyhenztech.xyz/api/ssvid?url=${encodeURIComponent(youtubeUrl)}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  const resObj = res?.data?.result || res?.data;
+  const audioUrl = resObj?.audio || resObj?.mp3 || resObj?.url || resObj?.link;
+  if (audioUrl) {
+    return {
+      download: audioUrl,
+      title: resObj?.title
+    };
+  }
+  throw new Error("Ssvid returned no download");
 }
 
 async function getYupraDownloadByUrl(youtubeUrl) {
@@ -108,13 +133,15 @@ export const command = {
         await reply(`🎵 Downloading: *${video.title}*`);
       }
 
-      // Try multiple APIs with fallback chain: EliteProTech -> Yupra -> Okatsu
+      // Try multiple APIs with fallback chain: EliteProTech -> Clipto -> Ssvid -> Yupra -> Okatsu
       let audioData = null;
       let audioBuffer = null;
       let downloadSuccess = false;
 
       const apiMethods = [
         { name: "EliteProTech", method: () => getEliteProTechDownloadByUrl(video.url) },
+        { name: "Clipto", method: () => getCliptoDownloadByUrl(video.url) },
+        { name: "Ssvid", method: () => getSsvidDownloadByUrl(video.url) },
         { name: "Yupra", method: () => getYupraDownloadByUrl(video.url) },
         { name: "Okatsu", method: () => getOkatsuDownloadByUrl(video.url) }
       ];
