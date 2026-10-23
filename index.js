@@ -105,11 +105,19 @@ app.get("/api/status/:sessionId", (req, res) => {
 // ================= AUTHENTICATED SETTINGS API ROUTES =================
 // Requires phone number (session) and 8-digit PIN password verification
 function verifySessionSettingsAuth(req, res) {
-  const sessionId = String(req.query?.session || req.body?.session || req.body?.phone || req.query?.phone || "");
-  const pin = String(req.body?.pin || req.query?.pin || req.headers?.authorization || "").replace("Bearer ", "").trim();
+  const sessionId = String(
+    req.query?.session || req.body?.session ||
+    req.query?.number || req.body?.number ||
+    req.body?.phone || req.query?.phone || ""
+  );
+  const pin = String(
+    req.body?.password || req.query?.password ||
+    req.body?.pin || req.query?.pin ||
+    req.headers?.authorization || ""
+  ).replace("Bearer ", "").trim();
 
   if (!sessionId) {
-    res.status(400).json({ ok: false, error: "Missing required parameter: session (phone number)." });
+    res.status(400).json({ ok: false, error: "Missing required parameter: session or number (phone number)." });
     return null;
   }
 
@@ -132,7 +140,25 @@ function verifySessionSettingsAuth(req, res) {
   return { session, sessionCfg };
 }
 
-// 1. Mode API: /api/v1/settings/mode (public / private / self)
+// Settings Authentication Endpoint: /api/v1/settings/auth?number=<number>&password=<password>
+app.all("/api/v1/settings/auth", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  res.json({
+    ok: true,
+    message: "Authentication successful ✓",
+    authenticated: true,
+    session: {
+      id: auth.session.id,
+      phone: auth.session.phone,
+      status: auth.session.status,
+      settings: auth.sessionCfg
+    }
+  });
+});
+
+// 1. Mode API: /api/v1/settings/mode
 app.all("/api/v1/settings/mode", (req, res) => {
   const auth = verifySessionSettingsAuth(req, res);
   if (!auth) return;
