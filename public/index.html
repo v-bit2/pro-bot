@@ -3,22 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>⚡ Voltra Mini — Control Center</title>
+  <title>⚡ Voltra MD — Tactile Control Center</title>
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #0b0e14;
-      --card-bg: #131722;
-      --card-border: #1f2636;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --accent: #7c5cff;
-      --accent-hover: #6943ff;
-      --accent-glow: rgba(124, 92, 255, 0.25);
+      --bg: #181b22;
+      --panel-bg: linear-gradient(145deg, #20242f, #161920);
+      --panel-border: #282e3d;
+      --text-main: #e2e8f0;
+      --text-muted: #8a99ad;
+      --accent: #6366f1;
+      --accent-grad: linear-gradient(145deg, #6366f1, #4f46e5);
+      --accent-shadow: rgba(99, 102, 241, 0.4);
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --input-bg: #0a0d14;
+      --input-well: inset 3px 3px 6px #101217, inset -3px -3px 6px #242935;
+      --card-shadow: 10px 10px 20px #0f1116, -10px -10px 20px #212530;
+      --btn-shadow: 5px 5px 10px #111319, -5px -5px 10px #252a37;
+      --btn-active: inset 3px 3px 6px #111319, inset -3px -3px 6px #252a37;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -27,191 +29,198 @@
       flex-direction: column;
       align-items: center;
       padding: 30px 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at 50% 0%, rgba(124, 92, 255, 0.15), transparent 50%), var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
       color: var(--text-main);
     }
     .container {
-      width: min(520px, 100%);
+      width: min(560px, 100%);
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 24px;
     }
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
+
+    /* Skeuomorphic Header Panel */
+    .header-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
       padding: 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-    }
-    .brand-header {
+      box-shadow: var(--card-shadow);
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
+      gap: 18px;
     }
-    .bot-avatar {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
+    .bot-dial {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
       object-fit: cover;
-      border: 2px solid var(--accent);
-      box-shadow: 0 0 15px var(--accent-glow);
+      border: 3px solid #2e3546;
+      box-shadow: 4px 4px 8px #0f1116, -4px -4px 8px #212530;
     }
-    .bot-avatar-fallback {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, var(--accent), #38bdf8);
+    .bot-dial-fallback {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #6366f1, #3b82f6);
       display: grid;
       place-items: center;
-      font-size: 28px;
-      box-shadow: 0 0 15px var(--accent-glow);
+      font-size: 32px;
+      box-shadow: 4px 4px 8px #0f1116, -4px -4px 8px #212530;
     }
-    .title h1 { font-size: 22px; font-weight: 700; color: #fff; }
+    .title h1 { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
     .title p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 20px;
+    /* Tactile Navigation Bar */
+    .nav-tabs {
+      display: flex;
+      background: #14161c;
+      padding: 6px;
+      border-radius: 18px;
+      box-shadow: inset 2px 2px 5px #0d0e12, inset -2px -2px 5px #1b1e26;
+      gap: 4px;
+      overflow-x: auto;
+    }
+    .nav-tab {
+      flex: 1;
+      padding: 10px 12px;
       font-size: 12px;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--card-border);
+      font-weight: 700;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: all 0.2s ease;
     }
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--text-muted);
+    .nav-tab.active {
+      color: #fff;
+      background: var(--panel-bg);
+      box-shadow: 3px 3px 6px #0d0e12, -3px -3px 6px #1e222b;
+      border: 1px solid rgba(255,255,255,0.05);
     }
-    .badge.connected .badge-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
-    .badge.pairing .badge-dot { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
-    .badge.disconnected .badge-dot { background: var(--danger); }
+
+    /* Tab Content Cards */
+    .tab-content { display: none; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 20px; }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+    }
 
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-top: 16px;
+      margin-top: 14px;
     }
-    label { font-size: 13px; font-weight: 500; color: #cbd5e1; }
-    input {
+    label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select {
       width: 100%;
       padding: 14px 16px;
-      border-radius: 12px;
-      border: 1px solid var(--card-border);
-      background: var(--input-bg);
+      border-radius: 14px;
+      border: 1px solid #1a1e28;
+      background: #12141a;
       color: var(--text-main);
-      font-size: 16px;
+      font-size: 15px;
       outline: none;
+      box-shadow: var(--input-well);
       transition: border-color 0.2s;
     }
-    input:focus { border-color: var(--accent); }
+    input:focus, select:focus { border-color: var(--accent); }
 
+    /* Tactile Skeuomorphic Button */
     button {
       width: 100%;
       padding: 14px;
-      border-radius: 12px;
-      border: none;
-      background: var(--accent);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--accent-grad);
       color: #fff;
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: background 0.2s, opacity 0.2s;
+      box-shadow: var(--btn-shadow);
+      transition: transform 0.1s, box-shadow 0.1s;
     }
-    button:hover { background: var(--accent-hover); }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button:active {
+      box-shadow: var(--btn-active);
+      transform: translateY(1px);
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Loading Spinner */
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: none;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .btn-secondary {
+      background: linear-gradient(145deg, #242936, #1a1d27);
+      color: #e2e8f0;
+      box-shadow: var(--btn-shadow);
     }
 
-    .result {
-      display: none;
-      margin-top: 20px;
-      padding: 20px;
-      border-radius: 14px;
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      text-align: center;
-    }
     .code-display {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 32px;
       font-weight: 800;
-      letter-spacing: 5px;
+      letter-spacing: 4px;
       color: #38bdf8;
-      margin: 12px 0;
-      text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+      margin: 14px 0;
+      padding: 16px;
+      background: #111318;
+      border-radius: 16px;
+      box-shadow: var(--input-well);
+      text-align: center;
     }
-    .btn-secondary {
-      background: #1e2538;
-      border: 1px solid var(--card-border);
-      color: #e2e8f0;
-      margin-top: 10px;
-    }
-    .btn-secondary:hover { background: #2a344d; }
 
-    .instructions {
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 20px;
       font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-top: 10px;
+      font-weight: 700;
+      background: #12141a;
+      box-shadow: var(--input-well);
     }
+    .badge-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    .status-badge.connected .badge-dot { background: var(--success); box-shadow: 0 0 10px var(--success); }
+    .status-badge.pairing .badge-dot { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
 
-    .msg { font-size: 13px; margin-top: 12px; text-align: center; }
+    .msg { font-size: 13px; margin-top: 12px; text-align: center; font-weight: 600; }
     .msg.error { color: var(--danger); }
     .msg.success { color: var(--success); }
 
-    .sessions-summary {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 18px;
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 14px;
     }
-    .sessions-count {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    .service-section {
+    .metric-card {
+      background: #12141a;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: var(--input-well);
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 4px;
     }
-    .service-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 10px;
-    }
+    .metric-val { font-size: 22px; font-weight: 800; color: #fff; }
+    .metric-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
     footer {
       text-align: center;
@@ -223,138 +232,190 @@
 </head>
 <body>
   <div class="container">
-    <main class="card">
-      <div class="brand-header">
-        <img src="/assets/voltra-mini.jpg" alt="Voltra Mini" class="bot-avatar" onerror="this.style.display='none'; document.getElementById('fallbackAvatar').style.display='grid';">
-        <div id="fallbackAvatar" class="bot-avatar-fallback" style="display: none;">⚡</div>
-        <div class="title">
-          <h1>Voltra Mini</h1>
-          <p>Next-Gen Modular WhatsApp MD Bot</p>
+    <!-- Header -->
+    <header class="header-panel">
+      <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="bot-dial" onerror="this.style.display='none'; document.getElementById('fallbackAvatar').style.display='grid';">
+      <div id="fallbackAvatar" class="bot-dial-fallback" style="display: none;">⚡</div>
+      <div class="title">
+        <h1>Voltra MD</h1>
+        <p>Tactile Multi-Session Control Center</p>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('home')">🏠 Home</button>
+      <button class="nav-tab" onclick="switchTab('pairing')">🔗 Pairing</button>
+      <button class="nav-tab" onclick="switchTab('reactions')">🔥 Reactions</button>
+      <button class="nav-tab" onclick="switchTab('poll')">📊 Poll Votes</button>
+      <button class="nav-tab" onclick="switchTab('settings')">⚙️ Settings</button>
+    </nav>
+
+    <!-- Tab 1: Home Dashboard -->
+    <section id="tab-home" class="tab-content active">
+      <div class="card">
+        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 10px;">System Monitor</div>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-val" id="activeSessionsVal">0</div>
+            <div class="metric-lbl">Active Connected Sessions</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="uptimeVal">0s</div>
+            <div class="metric-lbl">Server Uptime</div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span class="badge" id="statusBadge">
-          <span class="badge-dot"></span>
-          <span id="statusText">System Ready</span>
-        </span>
-      </div>
-
-      <div class="form-group">
-        <label for="phone">Phone Number</label>
-        <input id="phone" type="tel" inputmode="numeric" placeholder="263786624966">
-        <p class="instructions">Include country code without +, spaces, or dashes (e.g., 263786624966).</p>
-      </div>
-
-      <div style="margin-top: 18px;">
-        <button id="pairBtn">
-          <span class="spinner" id="btnSpinner"></span>
-          <span id="btnText">Get Pairing Code</span>
-        </button>
-      </div>
-
-      <div id="result" class="result">
-        <p style="font-size: 12px; color: var(--text-muted);" id="pairLabel">Your WhatsApp Pairing Code</p>
-        <div id="codeDisplay" class="code-display">--------</div>
-        <button id="copyBtn" class="btn-secondary">Copy Code</button>
-        <p class="instructions">
-          Open WhatsApp → Linked Devices → Link a Device → Link with Phone Number instead.
-        </p>
-      </div>
-
-      <div id="msg" class="msg"></div>
-    </main>
-
-    <!-- Active Sessions Summary -->
-    <div class="card">
-      <div class="sessions-summary">
-        <div>
-          <div style="font-size: 14px; font-weight: 600; color: #fff;">Active Connected Sessions</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Encrypted & Isolated Baileys MD Sockets</div>
+    <!-- Tab 2: Pairing -->
+    <section id="tab-pairing" class="tab-content">
+      <div class="card">
+        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">Link New Device</div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input id="phone" type="tel" placeholder="263786624966">
         </div>
-        <div class="sessions-count" id="sessionCount">0</div>
+        <div style="margin-top: 18px;">
+          <button id="pairBtn">Get Pairing Code</button>
+        </div>
+        <div id="result" style="display: none; margin-top: 16px;">
+          <div id="codeDisplay" class="code-display">--------</div>
+          <button id="copyBtn" class="btn-secondary">Copy Code</button>
+        </div>
+        <div id="pairMsg" class="msg"></div>
       </div>
-    </div>
+    </section>
 
-    <!-- Service Testing: Channel Reactions -->
-    <div class="card service-section">
-      <div class="service-title">
-        <span>🔥 Channel Reactions Testing</span>
+    <!-- Tab 3: Channel Reactions -->
+    <section id="tab-reactions" class="tab-content">
+      <div class="card">
+        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">Channel Post Reaction</div>
+        <div class="form-group">
+          <label for="reactUrl">Channel Post URL</label>
+          <input id="reactUrl" type="url" placeholder="https://whatsapp.com/channel/0029VaXXXXXX/101">
+        </div>
+        <div class="form-group">
+          <label for="reactEmoji">Emoji (Optional)</label>
+          <input id="reactEmoji" type="text" placeholder="🔥">
+        </div>
+        <div style="margin-top: 18px;">
+          <button id="reactBtn">Send Reactions</button>
+        </div>
+        <div id="reactMsg" class="msg"></div>
       </div>
-      <div class="form-group">
-        <label for="reactUrl">Channel Post URL</label>
-        <input id="reactUrl" type="url" placeholder="https://whatsapp.com/channel/0029VaXXXXXX/101">
-      </div>
-      <div class="form-group">
-        <label for="reactEmoji">Emoji (Optional)</label>
-        <input id="reactEmoji" type="text" placeholder="🔥">
-      </div>
-      <button id="reactBtn">Send Channel Reaction</button>
-      <div id="reactMsg" class="msg"></div>
-    </div>
+    </section>
 
-    <!-- Service Testing: Poll Votes -->
-    <div class="card service-section">
-      <div class="service-title">
-        <span>📊 Channel Poll Votes Testing</span>
+    <!-- Tab 4: Poll Votes -->
+    <section id="tab-poll" class="tab-content">
+      <div class="card">
+        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">Channel Poll Voting</div>
+        <div class="form-group">
+          <label for="pollUrl">Channel Poll URL</label>
+          <input id="pollUrl" type="url" placeholder="https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130">
+        </div>
+        <div class="form-group">
+          <label for="pollOption">Option Choice</label>
+          <input id="pollOption" type="text" placeholder="Option 1">
+        </div>
+        <div style="margin-top: 18px;">
+          <button id="pollBtn">Send Poll Vote</button>
+        </div>
+        <div id="pollMsg" class="msg"></div>
       </div>
-      <div class="form-group">
-        <label for="pollUrl">Channel Poll URL</label>
-        <input id="pollUrl" type="url" placeholder="https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130">
-      </div>
-      <div class="form-group">
-        <label for="pollOption">Option / Choice</label>
-        <input id="pollOption" type="text" placeholder="Option 1 or 👍">
-      </div>
-      <button id="pollBtn">Send Poll Vote</button>
-      <div id="pollMsg" class="msg"></div>
-    </div>
+    </section>
 
-    <footer>Voltra Mini Engine • Powered by Baileys MD & Node.js</footer>
+    <!-- Tab 5: Settings Management (Authenticated) -->
+    <section id="tab-settings" class="tab-content">
+      <div class="card" id="settingsAuthCard">
+        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">Settings Login Verification</div>
+        <div class="form-group">
+          <label for="authPhone">Phone Number / Session ID</label>
+          <input id="authPhone" type="tel" placeholder="263786624966">
+        </div>
+        <div class="form-group">
+          <label for="authPin">8-Digit Session PIN Password</label>
+          <input id="authPin" type="password" maxlength="8" placeholder="12345678">
+        </div>
+        <div style="margin-top: 18px;">
+          <button id="loginSettingsBtn">Authenticate Session</button>
+        </div>
+        <div id="authMsg" class="msg"></div>
+      </div>
+
+      <div class="card" id="settingsPanelCard" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div style="font-size: 16px; font-weight: 800; color: #fff;">Session Settings Manager</div>
+          <button id="logoutSettingsBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Lock</button>
+        </div>
+
+        <div class="form-group">
+          <label for="setMode">Bot Operating Mode</label>
+          <select id="setMode">
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+            <option value="self">Self Only</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="setPrefix">Custom Prefix</label>
+          <input id="setPrefix" type="text" placeholder=".">
+        </div>
+
+        <div class="form-group">
+          <label for="setAntiCall">Anti-Call Setting</label>
+          <select id="setAntiCall">
+            <option value="off">Off</option>
+            <option value="on">Reject Calls</option>
+            <option value="block">Reject & Block Caller</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="setAntiCallWl">Anti-Call Whitelist Number</label>
+          <input id="setAntiCallWl" type="tel" placeholder="263786624966">
+        </div>
+
+        <div style="margin-top: 18px;">
+          <button id="saveSettingsBtn">Save Session Settings</button>
+        </div>
+        <div id="settingsMsg" class="msg"></div>
+      </div>
+    </section>
+
+    <footer>Voltra MD Engine • Tactile Control Center</footer>
   </div>
 
 <script>
-const phoneInput = document.getElementById("phone");
-const pairBtn = document.getElementById("pairBtn");
-const btnSpinner = document.getElementById("btnSpinner");
-const btnText = document.getElementById("btnText");
-const resultBox = document.getElementById("result");
-const codeDisplay = document.getElementById("codeDisplay");
-const statusBadge = document.getElementById("statusBadge");
-const statusText = document.getElementById("statusText");
-const msg = document.getElementById("msg");
-const sessionCount = document.getElementById("sessionCount");
-
-function setStatus(text, state = "disconnected") {
-  statusText.textContent = text;
-  statusBadge.className = "badge " + state;
+function switchTab(name) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
 }
 
-async function loadSessions() {
+async function loadSystemStats() {
   try {
-    const res = await fetch("/api/sessions");
+    const res = await fetch("/api/health");
     const data = await res.json();
     if (data.ok) {
-      sessionCount.textContent = data.count || "0";
+      document.getElementById("activeSessionsVal").textContent = data.sessions || 0;
+      document.getElementById("uptimeVal").textContent = `${data.uptime || 0}s`;
     }
   } catch {}
 }
 
-pairBtn.addEventListener("click", async () => {
-  const phone = phoneInput.value.trim().replace(/\D/g, "");
-  msg.textContent = "";
-  msg.className = "msg";
+document.getElementById("pairBtn").addEventListener("click", async () => {
+  const phone = document.getElementById("phone").value.trim().replace(/\D/g, "");
+  const pairMsg = document.getElementById("pairMsg");
+  pairMsg.textContent = "";
 
-  if (!phone || phone.length < 7) {
-    msg.textContent = "Please enter a valid phone number with country code.";
-    msg.className = "msg error";
+  if (!phone) {
+    pairMsg.textContent = "Please enter a valid phone number.";
+    pairMsg.className = "msg error";
     return;
   }
-
-  pairBtn.disabled = true;
-  btnSpinner.style.display = "inline-block";
-  btnText.textContent = "Requesting Code...";
-  setStatus("Generating Code...", "pairing");
 
   try {
     const res = await fetch("/api/v1/pair/code", {
@@ -362,103 +423,116 @@ pairBtn.addEventListener("click", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone })
     });
-
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error(data.error || "Pairing failed.");
 
-    resultBox.style.display = "block";
+    document.getElementById("result").style.display = "block";
     const raw = data.code || "";
-    if (raw === "ALREADY_LINKED") {
-      codeDisplay.textContent = "LINKED";
-      document.getElementById("pairLabel").textContent = "Account Status";
-      setStatus("Connected", "connected");
-    } else {
-      codeDisplay.textContent = raw.length === 8 ? raw.slice(0, 4) + "-" + raw.slice(4) : raw;
-      document.getElementById("pairLabel").textContent = "Your WhatsApp Pairing Code";
-      setStatus("Waiting for WhatsApp Pairing...", "pairing");
-    }
-
-    await loadSessions();
+    document.getElementById("codeDisplay").textContent = raw.length === 8 ? raw.slice(0, 4) + "-" + raw.slice(4) : raw;
   } catch (err) {
-    msg.textContent = err.message;
-    msg.className = "msg error";
-    setStatus("Error", "disconnected");
-    resultBox.style.display = "none";
-  } finally {
-    pairBtn.disabled = false;
-    btnSpinner.style.display = "none";
-    btnText.textContent = "Get Pairing Code";
+    pairMsg.textContent = err.message;
+    pairMsg.className = "msg error";
   }
 });
 
 document.getElementById("copyBtn").addEventListener("click", async () => {
-  const code = codeDisplay.textContent.replace("-", "");
+  const code = document.getElementById("codeDisplay").textContent.replace("-", "");
   await navigator.clipboard.writeText(code);
   const btn = document.getElementById("copyBtn");
   btn.textContent = "Copied!";
   setTimeout(() => btn.textContent = "Copy Code", 1500);
 });
 
-// Channel Reactions Test Form
-document.getElementById("reactBtn").addEventListener("click", async () => {
-  const url = document.getElementById("reactUrl").value.trim();
-  const emoji = document.getElementById("reactEmoji").value.trim();
-  const reactMsg = document.getElementById("reactMsg");
-  reactMsg.textContent = "";
+// Settings Login Authentication
+let authenticatedSession = null;
+let authenticatedPin = null;
 
-  if (!url) {
-    reactMsg.textContent = "Please enter a channel post URL.";
-    reactMsg.className = "msg error";
+document.getElementById("loginSettingsBtn").addEventListener("click", async () => {
+  const number = document.getElementById("authPhone").value.trim().replace(/\D/g, "");
+  const password = document.getElementById("authPin").value.trim();
+  const authMsg = document.getElementById("authMsg");
+  authMsg.textContent = "";
+
+  if (!number || !password) {
+    authMsg.textContent = "Please enter phone number and 8-digit PIN password.";
+    authMsg.className = "msg error";
     return;
   }
 
   try {
-    const res = await fetch("/api/v1/services/chreact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, emoji })
-    });
+    const res = await fetch(`/api/v1/settings/auth?number=${number}&password=${password}`);
     const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || "Reaction failed.");
-    reactMsg.textContent = data.message || "Reaction sent successfully!";
-    reactMsg.className = "msg success";
+    if (!res.ok || !data.ok) throw new Error(data.error || "Authentication failed.");
+
+    authenticatedSession = number;
+    authenticatedPin = password;
+
+    document.getElementById("settingsAuthCard").style.display = "none";
+    document.getElementById("settingsPanelCard").style.display = "block";
+
+    if (data.session?.settings) {
+      document.getElementById("setMode").value = data.session.settings.mode || "public";
+      document.getElementById("setPrefix").value = data.session.settings.prefix || ".";
+      document.getElementById("setAntiCall").value = data.session.settings.antiCall || "off";
+    }
   } catch (err) {
-    reactMsg.textContent = err.message;
-    reactMsg.className = "msg error";
+    authMsg.textContent = err.message;
+    authMsg.className = "msg error";
   }
 });
 
-// Poll Votes Test Form
-document.getElementById("pollBtn").addEventListener("click", async () => {
-  const url = document.getElementById("pollUrl").value.trim();
-  const option = document.getElementById("pollOption").value.trim();
-  const pollMsg = document.getElementById("pollMsg");
-  pollMsg.textContent = "";
+document.getElementById("logoutSettingsBtn").addEventListener("click", () => {
+  authenticatedSession = null;
+  authenticatedPin = null;
+  document.getElementById("settingsAuthCard").style.display = "block";
+  document.getElementById("settingsPanelCard").style.display = "none";
+});
 
-  if (!url) {
-    pollMsg.textContent = "Please enter a channel poll URL.";
-    pollMsg.className = "msg error";
-    return;
-  }
+document.getElementById("saveSettingsBtn").addEventListener("click", async () => {
+  const mode = document.getElementById("setMode").value;
+  const prefix = document.getElementById("setPrefix").value.trim();
+  const antiCall = document.getElementById("setAntiCall").value;
+  const whitelistNum = document.getElementById("setAntiCallWl").value.trim().replace(/\D/g, "");
+  const settingsMsg = document.getElementById("settingsMsg");
+  settingsMsg.textContent = "";
 
   try {
-    const res = await fetch("/api/v1/services/pollvt", {
+    await fetch(`/api/v1/settings/mode?session=${authenticatedSession}&pin=${authenticatedPin}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, option })
+      body: JSON.stringify({ mode })
     });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || "Poll vote failed.");
-    pollMsg.textContent = data.message || "Poll vote sent successfully!";
-    pollMsg.className = "msg success";
+
+    await fetch(`/api/v1/settings/prefix?session=${authenticatedSession}&pin=${authenticatedPin}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prefix })
+    });
+
+    await fetch(`/api/v1/settings/anticall?session=${authenticatedSession}&pin=${authenticatedPin}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ antiCall })
+    });
+
+    if (whitelistNum) {
+      await fetch(`/api/v1/settings/anticallwl?session=${authenticatedSession}&pin=${authenticatedPin}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: whitelistNum, action: "add" })
+      });
+    }
+
+    settingsMsg.textContent = "Settings saved successfully ✓";
+    settingsMsg.className = "msg success";
   } catch (err) {
-    pollMsg.textContent = err.message;
-    pollMsg.className = "msg error";
+    settingsMsg.textContent = err.message;
+    settingsMsg.className = "msg error";
   }
 });
 
-loadSessions();
-setInterval(loadSessions, 10000);
+loadSystemStats();
+setInterval(loadSystemStats, 10000);
 </script>
 </body>
 </html>
