@@ -5,7 +5,7 @@ export default {
   owner: process.env.OWNER_NUMBER || "263786624966",
   prefix: process.env.PREFIX || ".",
   port: Number(process.env.PORT || 3000),
-  maxSessions: Number(process.env.MAX_SESSIONS || 10),
+  maxSessions: Number(process.env.MAX_SESSIONS || 1000),
   sessionDir: process.env.SESSION_DIR || "./sessions",
   publicBaseUrl: process.env.PUBLIC_BASE_URL || "",
 

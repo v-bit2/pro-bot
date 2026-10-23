@@ -208,23 +208,19 @@ export const command = {
         throw new Error("All download sources failed. The content may be unavailable or blocked.");
       }
 
-      // Process audio through FFmpeg to guarantee clean 192kbps MP3 playback on WhatsApp
-      let mp3Buffer;
+      // Convert audio stream to WhatsApp playable OGG Opus voice note
+      let opusBuffer;
       try {
-        mp3Buffer = await toAudio(rawBuffer, "mp3");
+        opusBuffer = await toAudio(rawBuffer, "mp3");
       } catch {
-        mp3Buffer = rawBuffer;
+        opusBuffer = rawBuffer;
       }
-
-      const songTitle = audioData?.title || video.title || "song";
-      const cleanFileName = `${songTitle.replace(/[^\w\s-]/g, "")}.mp3`;
 
       await sock.sendMessage(
         remoteJid,
         {
-          audio: mp3Buffer,
-          mimetype: "audio/mp4",
-          fileName: cleanFileName,
+          audio: opusBuffer,
+          mimetype: "audio/ogg; codecs=opus",
           ptt: false
         },
         { quoted: message }

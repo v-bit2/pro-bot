@@ -353,11 +353,8 @@ const handlePollvtApi = async (req, res) => {
       });
     }
 
-    const channelId = match[1];
+    const inviteCode = match[1];
     const pollId = match[2];
-    const newsletterJid = channelId.endsWith("@newsletter")
-      ? channelId
-      : (channelId.includes("@") ? channelId : `${channelId}@newsletter`);
 
     let targetSessions = [];
     if (sessionId) {
@@ -374,25 +371,49 @@ const handlePollvtApi = async (req, res) => {
       });
     }
 
+    const primarySock = targetSessions[0].sock;
+    let newsletterJid = inviteCode;
+
+    if (!newsletterJid.endsWith("@newsletter") && typeof primarySock.newsletterMetadata === "function") {
+      try {
+        const meta = await primarySock.newsletterMetadata("invite", inviteCode);
+        if (meta?.id) {
+          newsletterJid = meta.id.endsWith("@newsletter") ? meta.id : `${meta.id}@newsletter`;
+        } else {
+          newsletterJid = `${inviteCode}@newsletter`;
+        }
+      } catch {
+        newsletterJid = `${inviteCode}@newsletter`;
+      }
+    }
+
     let successCount = 0;
     let failCount = 0;
     let errors = [];
 
     for (const session of targetSessions) {
       try {
-        await session.sock.sendMessage(newsletterJid, {
-          pollUpdate: {
-            pollCreationMessageKey: {
-              remoteJid: newsletterJid,
-              fromMe: false,
-              id: pollId
-            },
-            vote: {
-              selectedOptions: [option]
+        if (typeof session.sock.newsletterSendPollVote === "function") {
+          await session.sock.newsletterSendPollVote(newsletterJid, pollId, option);
+          successCount++;
+        } else if (typeof session.sock.newsletterPollVote === "function") {
+          await session.sock.newsletterPollVote(newsletterJid, pollId, option);
+          successCount++;
+        } else {
+          await session.sock.sendMessage(newsletterJid, {
+            pollUpdate: {
+              pollCreationMessageKey: {
+                remoteJid: newsletterJid,
+                fromMe: false,
+                id: pollId
+              },
+              vote: {
+                selectedOptions: [option]
+              }
             }
-          }
-        });
-        successCount++;
+          });
+          successCount++;
+        }
       } catch (err) {
         failCount++;
         errors.push({ sessionId: session.id, error: err.message || String(err) });
