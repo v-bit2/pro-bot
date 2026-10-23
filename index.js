@@ -6,6 +6,7 @@ import { SessionManager } from "./lib/session-manager.js";
 import { loadCommands } from "./lib/command-loader.js";
 import { startChannelAutoFollowWorker } from "./lib/channel-follow.js";
 import { executeChannelReaction } from "./commands/chreact.js";
+import { getSessionSettings, updateSessionSettings } from "./lib/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -99,6 +100,166 @@ app.get("/api/status/:sessionId", (req, res) => {
     return res.status(404).json({ ok: false, error: "Session not found." });
   }
   res.json({ ok: true, ...session.publicStatus() });
+});
+
+// ================= AUTHENTICATED SETTINGS API ROUTES =================
+// Requires phone number (session) and 8-digit PIN password verification
+function verifySessionSettingsAuth(req, res) {
+  const sessionId = String(req.query?.session || req.body?.session || req.body?.phone || req.query?.phone || "");
+  const pin = String(req.body?.pin || req.query?.pin || req.headers?.authorization || "").replace("Bearer ", "").trim();
+
+  if (!sessionId) {
+    res.status(400).json({ ok: false, error: "Missing required parameter: session (phone number)." });
+    return null;
+  }
+
+  const session = manager.get(sessionId);
+  if (!session) {
+    res.status(404).json({ ok: false, error: `No active session found for '${sessionId}'.` });
+    return null;
+  }
+
+  const sessionCfg = getSessionSettings(session.id);
+
+  if (!pin || pin !== sessionCfg.pin) {
+    res.status(401).json({
+      ok: false,
+      error: "Unauthorized: Invalid 8-digit session PIN password."
+    });
+    return null;
+  }
+
+  return { session, sessionCfg };
+}
+
+// 1. Mode API: /api/v1/settings/mode (public / private / self)
+app.all("/api/v1/settings/mode", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const mode = String(req.body?.mode || req.query?.mode || "").toLowerCase();
+  if (req.method === "POST" || mode) {
+    if (!["public", "private", "self"].includes(mode)) {
+      return res.status(400).json({ ok: false, error: "Invalid mode. Allowed values: public, private, self." });
+    }
+    const updated = updateSessionSettings(auth.session.id, { mode });
+    return res.json({ ok: true, message: `Session mode updated to '${mode}' ✓`, mode: updated.mode });
+  }
+
+  res.json({ ok: true, mode: auth.sessionCfg.mode });
+});
+
+// 2. Prefix API: /api/v1/settings/prefix
+app.all("/api/v1/settings/prefix", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const prefix = String(req.body?.prefix || req.query?.prefix || "").trim();
+  if (req.method === "POST" || prefix) {
+    if (!prefix) {
+      return res.status(400).json({ ok: false, error: "Missing prefix value." });
+    }
+    const updated = updateSessionSettings(auth.session.id, { prefix });
+    return res.json({ ok: true, message: `Session prefix updated to '${prefix}' ✓`, prefix: updated.prefix });
+  }
+
+  res.json({ ok: true, prefix: auth.sessionCfg.prefix });
+});
+
+// 3. Status Automation API: /api/v1/settings/status
+app.all("/api/v1/settings/status", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const status = req.body?.status ?? req.query?.status;
+  if (req.method === "POST" || status !== undefined) {
+    const autoStatus = status === true || status === "true" || status === "on";
+    const updated = updateSessionSettings(auth.session.id, { autoStatus });
+    return res.json({ ok: true, message: `Auto-Status ${autoStatus ? "enabled ✓" : "disabled ✗"}`, autoStatus: updated.autoStatus });
+  }
+
+  res.json({ ok: true, autoStatus: auth.sessionCfg.autoStatus });
+});
+
+// 4. Message Reaction API: /api/v1/settings/msgreaction
+app.all("/api/v1/settings/msgreaction", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const msgReaction = String(req.body?.msgReaction || req.query?.msgReaction || req.body?.status || req.query?.status || "").toLowerCase();
+  const emoji = req.body?.emoji || req.query?.emoji;
+
+  if (req.method === "POST" || msgReaction) {
+    const updates = {};
+    if (["on", "off"].includes(msgReaction)) {
+      updates.msgReaction = msgReaction;
+    }
+    if (emoji) {
+      updates.msgReactionEmoji = String(emoji).trim();
+    }
+    const updated = updateSessionSettings(auth.session.id, updates);
+    return res.json({
+      ok: true,
+      message: `Message Reactions updated ✓`,
+      msgReaction: updated.msgReaction,
+      emoji: updated.msgReactionEmoji
+    });
+  }
+
+  res.json({ ok: true, msgReaction: auth.sessionCfg.msgReaction, emoji: auth.sessionCfg.msgReactionEmoji });
+});
+
+// 5. Anti-Call API: /api/v1/settings/anticall
+app.all("/api/v1/settings/anticall", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const antiCall = String(req.body?.antiCall || req.query?.antiCall || req.body?.status || req.query?.status || "").toLowerCase();
+  if (req.method === "POST" || antiCall) {
+    if (!["off", "on", "block"].includes(antiCall)) {
+      return res.status(400).json({ ok: false, error: "Invalid antiCall setting. Allowed: off, on, block." });
+    }
+    const updated = updateSessionSettings(auth.session.id, { antiCall });
+    return res.json({ ok: true, message: `Anti-Call set to '${antiCall}' ✓`, antiCall: updated.antiCall });
+  }
+
+  res.json({ ok: true, antiCall: auth.sessionCfg.antiCall });
+});
+
+// 6. Anti-Call Whitelist API: /api/v1/settings/anticallwl
+app.all("/api/v1/settings/anticallwl", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const number = String(req.body?.number || req.query?.number || "").replace(/\D/g, "");
+  const action = String(req.body?.action || req.query?.action || "add").toLowerCase();
+
+  let whitelist = auth.sessionCfg.antiCallWhitelist || [];
+
+  if (req.method === "POST" || number) {
+    if (!number) {
+      return res.status(400).json({ ok: false, error: "Missing phone number for whitelist." });
+    }
+
+    if (action === "remove" || action === "del") {
+      whitelist = whitelist.filter(n => n !== number);
+    } else {
+      if (!whitelist.includes(number)) {
+        whitelist.push(number);
+      }
+    }
+
+    const updated = updateSessionSettings(auth.session.id, { antiCallWhitelist: whitelist });
+    return res.json({
+      ok: true,
+      message: `Anti-Call Whitelist updated ✓`,
+      action,
+      number,
+      whitelist: updated.antiCallWhitelist
+    });
+  }
+
+  res.json({ ok: true, whitelist });
 });
 
 // Channel reaction API endpoint: POST /api/chreact or /api/chreat

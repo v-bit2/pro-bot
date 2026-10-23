@@ -135,7 +135,7 @@ export const command = {
 
       // Try multiple APIs with fallback chain: EliteProTech -> Clipto -> Ssvid -> Yupra -> Okatsu
       let audioData = null;
-      let audioBuffer = null;
+      let rawBuffer = null;
       let downloadSuccess = false;
 
       const apiMethods = [
@@ -167,9 +167,9 @@ export const command = {
                 "Accept-Encoding": "identity"
               }
             });
-            audioBuffer = Buffer.from(audioResponse.data);
+            rawBuffer = Buffer.from(audioResponse.data);
 
-            if (audioBuffer && audioBuffer.length > 0) {
+            if (rawBuffer && rawBuffer.length > 5000) {
               downloadSuccess = true;
               break;
             }
@@ -193,9 +193,9 @@ export const command = {
                 audioResponse.data.on("end", res);
                 audioResponse.data.on("error", rej);
               });
-              audioBuffer = Buffer.concat(chunks);
+              rawBuffer = Buffer.concat(chunks);
 
-              if (audioBuffer && audioBuffer.length > 0) {
+              if (rawBuffer && rawBuffer.length > 5000) {
                 downloadSuccess = true;
                 break;
               }
@@ -204,49 +204,26 @@ export const command = {
         } catch {}
       }
 
-      if (!downloadSuccess || !audioBuffer || audioBuffer.length === 0) {
+      if (!downloadSuccess || !rawBuffer || rawBuffer.length === 0) {
         throw new Error("All download sources failed. The content may be unavailable or blocked.");
       }
 
-      // Detect file format signature
-      const firstBytes = audioBuffer.slice(0, 12);
-      const hexSignature = firstBytes.toString("hex");
-      const asciiSignature = firstBytes.toString("ascii", 4, 8);
-
-      let fileExtension = "mp3";
-
-      if (asciiSignature === "ftyp" || hexSignature.startsWith("000000")) {
-        fileExtension = "m4a";
-      } else if (audioBuffer.toString("ascii", 0, 3) === "ID3" || (audioBuffer[0] === 0xFF && (audioBuffer[1] & 0xE0) === 0xE0)) {
-        fileExtension = "mp3";
-      } else if (audioBuffer.toString("ascii", 0, 4) === "OggS") {
-        fileExtension = "ogg";
-      } else if (audioBuffer.toString("ascii", 0, 4) === "RIFF") {
-        fileExtension = "wav";
-      } else {
-        fileExtension = "m4a";
-      }
-
-      let finalBuffer = audioBuffer;
-      let finalMimetype = "audio/mpeg";
-      let finalExtension = "mp3";
-
-      if (fileExtension !== "mp3") {
-        try {
-          finalBuffer = await toAudio(audioBuffer, fileExtension);
-          finalMimetype = "audio/mpeg";
-          finalExtension = "mp3";
-        } catch {}
+      // Process audio through FFmpeg to guarantee clean 192kbps MP3 playback on WhatsApp
+      let mp3Buffer;
+      try {
+        mp3Buffer = await toAudio(rawBuffer, "mp3");
+      } catch {
+        mp3Buffer = rawBuffer;
       }
 
       const songTitle = audioData?.title || video.title || "song";
-      const cleanFileName = `${songTitle.replace(/[^\w\s-]/g, "")}.${finalExtension}`;
+      const cleanFileName = `${songTitle.replace(/[^\w\s-]/g, "")}.mp3`;
 
       await sock.sendMessage(
         remoteJid,
         {
-          audio: finalBuffer,
-          mimetype: finalMimetype,
+          audio: mp3Buffer,
+          mimetype: "audio/mp4",
           fileName: cleanFileName,
           ptt: false
         },
