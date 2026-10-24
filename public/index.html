@@ -732,6 +732,10 @@ function renderRoute() {
 
     const navLink = document.getElementById(`nav-${route}`);
     if (navLink) navLink.classList.add("active");
+
+    if (route === "admin") {
+      checkAdminSessionState();
+    }
   } else {
     const view404 = document.getElementById("view-404");
     if (view404) view404.classList.add("active");
@@ -887,8 +891,33 @@ document.getElementById("saveSettingsBtn").addEventListener("click", async () =>
   }
 });
 
-// Admin Panel with Spinner
-let adminToken = null;
+// Persistent Admin Login Cache (48 hours = 172,800,000 ms)
+const ADMIN_CACHE_KEY = "voltra_admin_token";
+const ADMIN_CACHE_EXPIRY = "voltra_admin_expiry";
+const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
+
+function getCachedAdminToken() {
+  const token = localStorage.getItem(ADMIN_CACHE_KEY);
+  const expiry = parseInt(localStorage.getItem(ADMIN_CACHE_EXPIRY) || "0");
+  if (token && expiry && Date.now() < expiry) {
+    return token;
+  }
+  localStorage.removeItem(ADMIN_CACHE_KEY);
+  localStorage.removeItem(ADMIN_CACHE_EXPIRY);
+  return null;
+}
+
+let adminToken = getCachedAdminToken();
+
+function checkAdminSessionState() {
+  const cached = getCachedAdminToken();
+  if (cached) {
+    adminToken = cached;
+    document.getElementById("adminAuthCard").style.display = "none";
+    document.getElementById("adminPanelCard").style.display = "block";
+    loadAdminSessions();
+  }
+}
 
 document.getElementById("loginAdminBtn").addEventListener("click", async () => {
   const username = document.getElementById("adminUser").value.trim();
@@ -909,6 +938,10 @@ document.getElementById("loginAdminBtn").addEventListener("click", async () => {
     if (!res.ok || !data.ok) throw new Error(data.error || "Admin authentication failed.");
 
     adminToken = data.adminToken;
+    const expiryTime = Date.now() + FORTY_EIGHT_HOURS_MS;
+    localStorage.setItem(ADMIN_CACHE_KEY, adminToken);
+    localStorage.setItem(ADMIN_CACHE_EXPIRY, expiryTime.toString());
+
     document.getElementById("adminAuthCard").style.display = "none";
     document.getElementById("adminPanelCard").style.display = "block";
 
@@ -923,6 +956,8 @@ document.getElementById("loginAdminBtn").addEventListener("click", async () => {
 
 document.getElementById("logoutAdminBtn").addEventListener("click", () => {
   adminToken = null;
+  localStorage.removeItem(ADMIN_CACHE_KEY);
+  localStorage.removeItem(ADMIN_CACHE_EXPIRY);
   document.getElementById("adminAuthCard").style.display = "block";
   document.getElementById("adminPanelCard").style.display = "none";
 });
