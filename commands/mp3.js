@@ -2,6 +2,9 @@ import axios from "axios";
 import yts from "yt-search";
 import { toMp3 } from "../lib/converter.js";
 
+const AXIOS_TIMEOUT_MS = 45000;
+const DOWNLOAD_TIMEOUT_MS = 90000;
+
 function sanitizeFileName(title) {
   return String(title || "audio")
     .replace(/[^\w\s\-\.\(\)\[\]]+/g, "")
@@ -10,144 +13,193 @@ function sanitizeFileName(title) {
     .slice(0, 80) || "audio";
 }
 
-// 1. Try Prexzy AIO Endpoint (https://prexzyapis.com/download/aio?url=)
-async function getPrexzyAioAudioUrl(youtubeUrl) {
-  const apiUrl = `https://prexzyapis.com/download/aio?url=${encodeURIComponent(youtubeUrl)}`;
-  const res = await axios.get(apiUrl, {
-    timeout: 35000,
+/**
+ * Provider 1: Hector YouTube audio downloader
+ * Endpoint: https://yt-dl.officialhectormanuel.workers.dev?url=YOUTUBE_URL
+ */
+async function tryHector(youtubeUrl) {
+  const res = await axios.get("https://yt-dl.officialhectormanuel.workers.dev", {
+    params: { url: youtubeUrl },
+    timeout: AXIOS_TIMEOUT_MS,
     headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
   });
 
-  const medias = res.data?.data?.medias || [];
-  const title = res.data?.data?.title || "YouTube Audio";
+  const data = res?.data?.data || res?.data;
+  const audioUrl = data?.audio || data?.link || data?.downloadUrl || data?.url;
+  const title = data?.title || "YouTube Audio";
+  const thumbnail = data?.thumbnail || data?.thumb || "";
 
-  // Filter audio media with extension mp3
-  const audioMedias = medias.filter(m => m && (m.type === "audio" || m.extension === "mp3" || m.quality?.includes("kbps")));
-
-  if (audioMedias.length > 0) {
-    // Sort by highest quality in kbps (320kbps -> 256kbps -> 128kbps)
-    audioMedias.sort((a, b) => {
-      const qA = parseInt(a.quality) || 0;
-      const qB = parseInt(b.quality) || 0;
-      return qB - qA;
-    });
-
-    const bestAudio = audioMedias[0];
-    if (bestAudio?.url) {
-      return { url: bestAudio.url, title, extension: bestAudio.extension || "mp3" };
-    }
+  if (audioUrl && typeof audioUrl === "string" && /^https?:\/\//i.test(audioUrl)) {
+    return {
+      provider: "Hector",
+      audioUrl,
+      title,
+      thumbnail
+    };
   }
 
-  throw new Error("No MP3 audio media found in Prexzy AIO response.");
+  throw new Error("Hector provider returned no valid audio URL");
 }
 
-// 2. Fallback to Prexzy YTMP3 Endpoint (https://prexzyapis.com/download/ytmp3?url=)
-async function getPrexzyYtmp3AudioUrl(youtubeUrl) {
-  const apiUrl = `https://prexzyapis.com/download/ytmp3?url=${encodeURIComponent(youtubeUrl)}&format=mp3`;
-  const res = await axios.get(apiUrl, {
-    timeout: 35000,
+/**
+ * Provider 2: Prexzy YouTube MP3 downloader
+ * Endpoint: https://prexzyapis.com/download/ytmp3?url=YOUTUBE_URL
+ */
+async function tryPrexzy(youtubeUrl) {
+  const res = await axios.get("https://prexzyapis.com/download/ytmp3", {
+    params: { url: youtubeUrl },
+    timeout: AXIOS_TIMEOUT_MS,
     headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
   });
 
-  const downloadUrl = res.data?.download_url || res.data?.format?.download_url || res.data?.downloadURL || res.data?.downloadUrl;
-  const title = res.data?.info?.title || res.data?.title || "YouTube Audio";
-  const ext = res.data?.ext || "m4a";
+  const audioUrl = res?.data?.download_url || res?.data?.format?.download_url || res?.data?.downloadURL;
+  const title = res?.data?.info?.title || res?.data?.title || "YouTube Audio";
+  const thumbnail = res?.data?.info?.thumbnail || "";
 
-  if (downloadUrl && typeof downloadUrl === "string") {
-    return { url: downloadUrl, title, extension: ext };
+  if (audioUrl && typeof audioUrl === "string" && /^https?:\/\//i.test(audioUrl)) {
+    return {
+      provider: "Prexzy",
+      audioUrl,
+      title,
+      thumbnail
+    };
   }
 
-  throw new Error("No download URL returned from Prexzy YTMP3 endpoint.");
+  throw new Error("Prexzy provider returned no valid download_url");
+}
+
+/**
+ * Download actual audio bytes and validate non-empty audio media
+ */
+async function fetchAudioBuffer(audioUrl) {
+  const res = await axios.get(audioUrl, {
+    responseType: "arraybuffer",
+    timeout: DOWNLOAD_TIMEOUT_MS,
+    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+  });
+
+  const rawBuffer = Buffer.from(res.data);
+  if (!rawBuffer || rawBuffer.length < 5000) {
+    throw new Error("Downloaded audio file is empty or too small");
+  }
+
+  const sample = rawBuffer.slice(0, 64).toString("utf8").toLowerCase();
+  if (sample.includes("<!doctype") || sample.includes("<html") || sample.includes("{\"status\":false")) {
+    throw new Error("Download URL returned HTML/error page instead of media");
+  }
+
+  return rawBuffer;
 }
 
 export const command = {
-  name: "mp3",
-  aliases: ["song", "music", "play"],
+  name: "song",
+  aliases: ["mp3", "music", "play"],
   category: "DOWNLOADER",
-  description: "Search and download YouTube MP3 audio (.mp3 <song_name_or_url>)",
-  usage: ".mp3 <song_name_or_url>",
+  description: "Search and download YouTube MP3 audio (.song <song_name_or_url>)",
+  usage: ".song <song_name_or_url>",
   async execute({ sock, message, args, reply, remoteJid }) {
     if (args.length === 0) {
-      await reply("Please enter a song name or YouTube link.\nExample: .mp3 Drake - Hotline Bling");
+      await reply("Please enter a song name or YouTube link.\nExample: .song Drake - Hotline Bling");
       return;
     }
 
     const query = args.join(" ").trim();
 
     try {
-      // Resolve video metadata via yt-search
-      let video;
+      // Step A: Resolve YouTube URL or Search Query
+      let videoUrl = "";
+      let videoTitle = "";
+      let videoThumb = "";
+      let videoDuration = "";
+
       if (/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)/i.test(query)) {
+        videoUrl = query;
+        videoTitle = "YouTube Video";
         const match = query.match(/(?:watch\?v=|embed\/|v\/|shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
         if (match && match[1]) {
-          video = await yts({ videoId: match[1] });
-        } else {
-          video = { url: query, title: "YouTube Audio", timestamp: "N/A" };
+          try {
+            const videoMeta = await yts({ videoId: match[1] });
+            if (videoMeta) {
+              videoTitle = videoMeta.title || videoTitle;
+              videoThumb = videoMeta.thumbnail || "";
+              videoDuration = videoMeta.timestamp || "";
+            }
+          } catch {}
         }
       } else {
         const search = await yts(query);
-        video = search?.videos?.[0];
+        const firstVideo = search?.videos?.[0];
+        if (!firstVideo || !firstVideo.url) {
+          await reply("No matching YouTube video found for your search.");
+          return;
+        }
+        videoUrl = firstVideo.url;
+        videoTitle = firstVideo.title;
+        videoThumb = firstVideo.thumbnail || "";
+        videoDuration = firstVideo.timestamp || "";
       }
 
-      if (!video || !video.url) {
-        await reply("No YouTube results found.");
-        return;
-      }
-
-      // Notify user
-      if (video.thumbnail) {
+      // Progress notification
+      if (videoThumb) {
         await sock.sendMessage(
           remoteJid,
           {
-            image: { url: video.thumbnail },
-            caption: `🎵 Downloading: *${video.title}*\n⏱ Duration: ${video.timestamp || "N/A"}`
+            image: { url: videoThumb },
+            caption: `🎵 Downloading: *${videoTitle}*\n⏱ Duration: ${videoDuration || "N/A"}`
           },
           { quoted: message }
         );
       } else {
-        await reply(`🎵 Downloading: *${video.title}*`);
+        await reply(`🎵 Downloading: *${videoTitle}*`);
       }
 
-      // Execute Prexzy AIO first, fall back to Prexzy YTMP3
-      let audioResult = null;
+      // Step B: Mandatory Fallback Chain — Hector (1) -> Prexzy (2)
+      const providers = [
+        () => tryHector(videoUrl),
+        () => tryPrexzy(videoUrl)
+      ];
+
+      let mediaResult = null;
+      let rawBuffer = null;
+      const errors = [];
+
+      for (const getMedia of providers) {
+        try {
+          mediaResult = await getMedia();
+          rawBuffer = await fetchAudioBuffer(mediaResult.audioUrl);
+          if (rawBuffer && rawBuffer.length >= 5000) {
+            console.log(`[Song Downloader] Downloaded audio successfully via provider: ${mediaResult.provider}`);
+            break;
+          }
+        } catch (err) {
+          errors.push(err.message || String(err));
+          mediaResult = null;
+          rawBuffer = null;
+        }
+      }
+
+      if (!rawBuffer || !mediaResult) {
+        console.error("[Song Downloader] Both providers failed:", errors.join(" | "));
+        await reply("❌ Audio downloading is temporarily unavailable. Both Hector and Prexzy providers failed.");
+        return;
+      }
+
+      // Step C: Format conversion to MP3
+      let finalMp3Buffer;
       try {
-        audioResult = await getPrexzyAioAudioUrl(video.url);
-      } catch (aioErr) {
-        console.warn("[Song Downloader] AIO failed, trying YTMP3:", aioErr.message);
-        audioResult = await getPrexzyYtmp3AudioUrl(video.url);
-      }
-
-      if (!audioResult?.url) {
-        throw new Error("Unable to retrieve audio download link from Prexzy servers.");
-      }
-
-      // Download audio stream arraybuffer
-      const audioRes = await axios.get(audioResult.url, {
-        responseType: "arraybuffer",
-        timeout: 90000,
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
-      });
-
-      const rawBuffer = Buffer.from(audioRes.data);
-      if (!rawBuffer || rawBuffer.length < 5000) {
-        throw new Error("Downloaded audio file is empty or corrupted.");
-      }
-
-      // Convert stream to clean MP3 buffer
-      let mp3Buffer;
-      try {
-        mp3Buffer = await toMp3(rawBuffer, audioResult.extension || "mp3");
+        finalMp3Buffer = await toMp3(rawBuffer, "mp3");
       } catch {
-        mp3Buffer = rawBuffer;
+        finalMp3Buffer = rawBuffer;
       }
 
-      const safeTitle = sanitizeFileName(audioResult.title || video.title);
+      const songTitle = mediaResult.title || videoTitle || "audio";
+      const safeTitle = sanitizeFileName(songTitle);
 
-      // Send to WhatsApp chat
+      // Step D: Send audio attachment to WhatsApp chat
       await sock.sendMessage(
         remoteJid,
         {
-          audio: mp3Buffer,
+          audio: finalMp3Buffer,
           mimetype: "audio/mpeg",
           ptt: false,
           fileName: `${safeTitle}.mp3`
@@ -155,8 +207,8 @@ export const command = {
         { quoted: message }
       );
     } catch (err) {
-      console.error("[Song/MP3 Error]:", err);
-      await reply(`❌ Failed to download song: ${err.message || String(err)}`);
+      console.error("[Song Command Error]:", err);
+      await reply(`❌ Failed to process song: ${err.message || String(err)}`);
     }
   }
 };
