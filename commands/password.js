@@ -8,8 +8,8 @@ export const command = {
   usage: ".password",
   ownerOnly: true,
   async execute({ sock, message }) {
-    const userPhone = sock.user?.id ? sock.user.id.split(":")[0] : "session";
-    const sessionCfg = getSessionSettings(userPhone);
+    const targetSessionId = sock.sessionId || (sock.user?.id ? sock.user.id.split(":")[0] : "session");
+    const sessionCfg = getSessionSettings(targetSessionId);
 
     const pinCode = sessionCfg.pin;
     await sock.sendMessage(message.key.remoteJid, {
