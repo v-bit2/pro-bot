@@ -1,4 +1,4 @@
-import { getGroupSettings, setGroupSettings } from "../lib/db.js";
+import { getGroupSettings, updateGroupSettings } from "../lib/db.js";
 
 export const command = {
   name: "antilink",
@@ -21,16 +21,16 @@ export const command = {
     }
 
     if (["on", "delete"].includes(mode)) {
-      setGroupSettings(remoteJid, { antilink: "on" });
+      updateGroupSettings(remoteJid, { antilink: "on" });
       await reply("antilink on ✓");
     } else if (mode === "warn") {
-      setGroupSettings(remoteJid, { antilink: "warn" });
+      updateGroupSettings(remoteJid, { antilink: "warn" });
       await reply("antilink warn ✓");
     } else if (mode === "kick") {
-      setGroupSettings(remoteJid, { antilink: "kick" });
+      updateGroupSettings(remoteJid, { antilink: "kick" });
       await reply("antilink kick ✓");
     } else if (mode === "off") {
-      setGroupSettings(remoteJid, { antilink: "off" });
+      updateGroupSettings(remoteJid, { antilink: "off" });
       await reply("antilink off ✗");
     } else {
       await reply("antilink off ✗");

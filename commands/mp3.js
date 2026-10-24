@@ -38,8 +38,8 @@ async function getPrexzyDownloadUrl(youtubeUrl) {
   throw new Error("Prexzy API returned no download URL");
 }
 
-async function getEmmyhenzDownloadUrl(youtubeUrl) {
-  const apiUrl = `https://apis.emmyhenztech.xyz/api/ytmp3-mobi?youtubeUrl=${encodeURIComponent(youtubeUrl)}`;
+async function getCliptoDownloadUrl(youtubeUrl) {
+  const apiUrl = `https://apis.emmyhenztech.xyz/api/clipto?url=${encodeURIComponent(youtubeUrl)}`;
   const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
   const resObj = res?.data?.result || res?.data;
   const audioUrl = resObj?.audio || resObj?.mp3 || resObj?.url || resObj?.link || resObj?.downloadUrl;
@@ -49,7 +49,45 @@ async function getEmmyhenzDownloadUrl(youtubeUrl) {
       title: resObj?.title
     };
   }
-  throw new Error("Emmyhenz API returned no download URL");
+  throw new Error("Clipto API returned no download URL");
+}
+
+async function getSsvidDownloadUrl(youtubeUrl) {
+  const apiUrl = `https://apis.emmyhenztech.xyz/api/ssvid?url=${encodeURIComponent(youtubeUrl)}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  const resObj = res?.data?.result || res?.data;
+  const audioUrl = resObj?.audio || resObj?.mp3 || resObj?.url || resObj?.link;
+  if (audioUrl) {
+    return {
+      download: audioUrl,
+      title: resObj?.title
+    };
+  }
+  throw new Error("Ssvid API returned no download URL");
+}
+
+async function getYupraDownloadUrl(youtubeUrl) {
+  const apiUrl = `https://api.yupra.my.id/api/downloader/ytmp3?url=${encodeURIComponent(youtubeUrl)}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  if (res?.data?.success && res?.data?.data?.download_url) {
+    return {
+      download: res.data.data.download_url,
+      title: res.data.data.title
+    };
+  }
+  throw new Error("Yupra API returned no download URL");
+}
+
+async function getOkatsuDownloadUrl(youtubeUrl) {
+  const apiUrl = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp3?url=${encodeURIComponent(youtubeUrl)}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  if (res?.data?.dl) {
+    return {
+      download: res.data.dl,
+      title: res.data.title
+    };
+  }
+  throw new Error("Okatsu API returned no download URL");
 }
 
 function sanitizeFileName(title) {
@@ -102,7 +140,10 @@ export const command = {
 
       const providers = [
         () => getPrexzyDownloadUrl(video.url),
-        () => getEmmyhenzDownloadUrl(video.url)
+        () => getCliptoDownloadUrl(video.url),
+        () => getSsvidDownloadUrl(video.url),
+        () => getYupraDownloadUrl(video.url),
+        () => getOkatsuDownloadUrl(video.url)
       ];
 
       let audioData = null;
@@ -123,8 +164,14 @@ export const command = {
             }
           });
 
-          rawBuffer = Buffer.from(res.data);
-          if (rawBuffer && rawBuffer.length > 5000) {
+          const testBuf = Buffer.from(res.data);
+          const sample = testBuf.slice(0, 64).toString("utf8").toLowerCase();
+          if (sample.includes("<!doctype") || sample.includes("<html")) {
+            continue;
+          }
+
+          if (testBuf && testBuf.length > 5000) {
+            rawBuffer = testBuf;
             downloadSuccess = true;
             break;
           }

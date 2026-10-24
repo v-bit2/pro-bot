@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>⚡ Voltra MD — Tactile Control Center</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
       --bg: #111318;
@@ -31,14 +32,13 @@
       color: var(--text-main);
     }
 
-    /* Layout Structure */
     .app-layout {
       display: flex;
       width: 100%;
       min-height: 100vh;
     }
 
-    /* Tactile Sidebar for Desktop */
+    /* Sidebar */
     .sidebar {
       width: 250px;
       background: var(--sidebar-bg);
@@ -91,7 +91,7 @@
       border: 1px solid rgba(255,255,255,0.05);
     }
 
-    /* Main Content Area */
+    /* Main Content */
     .main-content {
       flex: 1;
       padding: 32px 24px 80px 24px;
@@ -112,10 +112,9 @@
     }
     .view-card.active { display: flex; }
 
-    .view-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .view-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
     .view-desc { font-size: 13px; color: var(--text-muted); }
 
-    /* Form Inputs & Controls */
     .form-group {
       display: flex;
       flex-direction: column;
@@ -206,7 +205,7 @@
     .metric-val { font-size: 24px; font-weight: 800; color: #fff; }
     .metric-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
-    /* API Docs Styling */
+    /* API Docs */
     .api-card {
       background: #0d0f14;
       border-radius: 16px;
@@ -244,7 +243,6 @@
       word-break: break-all;
     }
 
-    /* Admin Session Monitor List */
     .session-item {
       background: #0d0f14;
       border-radius: 16px;
@@ -256,7 +254,6 @@
       align-items: center;
     }
 
-    /* Bottom Navigation Bar for Mobile */
     .mobile-nav {
       display: none;
       position: fixed;
@@ -290,7 +287,7 @@
 </head>
 <body>
   <div class="app-layout">
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand-header">
         <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="brand-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'44\' height=\'44\'><rect width=\'44\' height=\'44\' fill=\'%236366f1\'/><text x=\'22\' y=\'28\' font-size=\'20\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
@@ -301,23 +298,23 @@
       </div>
       <nav>
         <ul class="nav-list">
-          <li class="nav-item"><a href="#/home" id="nav-home" class="active">🏠 Home Dashboard</a></li>
-          <li class="nav-item"><a href="#/pairing" id="nav-pairing">🔗 Pair Device</a></li>
-          <li class="nav-item"><a href="#/reactions" id="nav-reactions">🔥 Channel Reactions</a></li>
-          <li class="nav-item"><a href="#/poll" id="nav-poll">📊 Poll Voting</a></li>
-          <li class="nav-item"><a href="#/settings" id="nav-settings">⚙️ Settings Manager</a></li>
-          <li class="nav-item"><a href="#/docs" id="nav-docs">📖 REST API Docs</a></li>
-          <li class="nav-item"><a href="#/admin" id="nav-admin">🛡️ Admin Portal</a></li>
+          <li class="nav-item"><a href="#/home" id="nav-home" class="active"><i data-lucide="layout-dashboard"></i> Home Dashboard</a></li>
+          <li class="nav-item"><a href="#/pairing" id="nav-pairing"><i data-lucide="link"></i> Pair Device</a></li>
+          <li class="nav-item"><a href="#/reactions" id="nav-reactions"><i data-lucide="flame"></i> Channel Reactions</a></li>
+          <li class="nav-item"><a href="#/poll" id="nav-poll"><i data-lucide="bar-chart-2"></i> Poll Voting</a></li>
+          <li class="nav-item"><a href="#/settings" id="nav-settings"><i data-lucide="settings"></i> Settings Manager</a></li>
+          <li class="nav-item"><a href="#/docs" id="nav-docs"><i data-lucide="file-text"></i> REST API Docs</a></li>
+          <li class="nav-item"><a href="#/admin" id="nav-admin"><i data-lucide="shield"></i> Admin Portal</a></li>
         </ul>
       </nav>
     </aside>
 
-    <!-- Main View Content Container -->
+    <!-- Main Content Container -->
     <main class="main-content">
-      <!-- 1. Standalone View: Home -->
+      <!-- 1. Home View -->
       <section id="view-home" class="view-card active">
         <div>
-          <h2 class="view-title">System Monitor</h2>
+          <h2 class="view-title"><i data-lucide="activity"></i> System Monitor</h2>
           <p class="view-desc">Live performance metrics and connected WhatsApp session count.</p>
         </div>
         <div class="metric-grid">
@@ -332,31 +329,31 @@
         </div>
       </section>
 
-      <!-- 2. Standalone View: Pairing -->
+      <!-- 2. Pairing View -->
       <section id="view-pairing" class="view-card">
         <div>
-          <h2 class="view-title">Pair New Device</h2>
-          <p class="view-desc">Generate an 8-character WhatsApp pairing code for your session.</p>
+          <h2 class="view-title"><i data-lucide="smartphone"></i> Pair New Device</h2>
+          <p class="view-desc">Generate an 8-character WhatsApp pairing code or QR code for your session.</p>
         </div>
         <div class="form-group">
           <label for="phone">Phone Number</label>
           <input id="phone" type="tel" placeholder="263786624966">
         </div>
         <div style="margin-top: 10px;">
-          <button id="pairBtn">Get Pairing Code</button>
+          <button id="pairBtn"><i data-lucide="key"></i> Get Pairing Code</button>
         </div>
         <div id="result" style="display: none; margin-top: 10px;">
           <div id="codeDisplay" class="code-display">--------</div>
-          <button id="copyBtn" class="btn-secondary">Copy Code</button>
+          <button id="copyBtn" class="btn-secondary"><i data-lucide="copy"></i> Copy Code</button>
         </div>
         <div id="pairMsg" class="msg"></div>
       </section>
 
-      <!-- 3. Standalone View: Channel Reactions -->
+      <!-- 3. Channel Reactions View -->
       <section id="view-reactions" class="view-card">
         <div>
-          <h2 class="view-title">Channel Post Reaction</h2>
-          <p class="view-desc">Broadcast emoji reactions to WhatsApp channel posts across sessions.</p>
+          <h2 class="view-title"><i data-lucide="smile"></i> Channel Post Reaction</h2>
+          <p class="view-desc">Broadcast emoji reactions to WhatsApp channel posts across active sessions.</p>
         </div>
         <div class="form-group">
           <label for="reactUrl">Channel Post URL</label>
@@ -367,15 +364,15 @@
           <input id="reactEmoji" type="text" placeholder="🔥">
         </div>
         <div style="margin-top: 10px;">
-          <button id="reactBtn">Send Reactions</button>
+          <button id="reactBtn"><i data-lucide="send"></i> Send Reactions</button>
         </div>
         <div id="reactMsg" class="msg"></div>
       </section>
 
-      <!-- 4. Standalone View: Poll Votes -->
+      <!-- 4. Poll Voting View -->
       <section id="view-poll" class="view-card">
         <div>
-          <h2 class="view-title">Channel Poll Voting</h2>
+          <h2 class="view-title"><i data-lucide="check-square"></i> Channel Poll Voting</h2>
           <p class="view-desc">Submit votes on WhatsApp channel poll posts.</p>
         </div>
         <div class="form-group">
@@ -387,16 +384,16 @@
           <input id="pollOption" type="text" placeholder="Option 1">
         </div>
         <div style="margin-top: 10px;">
-          <button id="pollBtn">Submit Vote</button>
+          <button id="pollBtn"><i data-lucide="vote"></i> Submit Vote</button>
         </div>
         <div id="pollMsg" class="msg"></div>
       </section>
 
-      <!-- 5. Standalone View: Authenticated Settings -->
+      <!-- 5. Settings Manager View -->
       <section id="view-settings" class="view-card">
         <div id="settingsAuthCard">
-          <h2 class="view-title">Settings Verification</h2>
-          <p class="view-desc">Enter your session phone number and 8-digit PIN password.</p>
+          <h2 class="view-title"><i data-lucide="lock"></i> Session Settings Login</h2>
+          <p class="view-desc">Enter your phone number and unique 8-digit PIN password.</p>
           <div class="form-group">
             <label for="authPhone">Phone Number / Session ID</label>
             <input id="authPhone" type="tel" placeholder="263786624966">
@@ -406,15 +403,23 @@
             <input id="authPin" type="password" maxlength="8" placeholder="12345678">
           </div>
           <div style="margin-top: 14px;">
-            <button id="loginSettingsBtn">Authenticate Session</button>
+            <button id="loginSettingsBtn"><i data-lucide="key-round"></i> Authenticate Session</button>
           </div>
           <div id="authMsg" class="msg"></div>
         </div>
 
         <div id="settingsPanelCard" style="display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h2 class="view-title">Session Settings Manager</h2>
-            <button id="logoutSettingsBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Lock</button>
+            <h2 class="view-title"><i data-lucide="sliders"></i> Per-Session Settings</h2>
+            <button id="logoutSettingsBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;"><i data-lucide="log-out"></i> Lock</button>
+          </div>
+          <div class="form-group">
+            <label for="setBotName">Bot Name</label>
+            <input id="setBotName" type="text" placeholder="Voltra MD">
+          </div>
+          <div class="form-group">
+            <label for="setPrefix">Custom Prefix</label>
+            <input id="setPrefix" type="text" placeholder=".">
           </div>
           <div class="form-group">
             <label for="setMode">Bot Operating Mode</label>
@@ -425,10 +430,6 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="setPrefix">Custom Prefix</label>
-            <input id="setPrefix" type="text" placeholder=".">
-          </div>
-          <div class="form-group">
             <label for="setAntiCall">Anti-Call Setting</label>
             <select id="setAntiCall">
               <option value="off">Off</option>
@@ -437,20 +438,20 @@
             </select>
           </div>
           <div style="margin-top: 14px;">
-            <button id="saveSettingsBtn">Save Settings</button>
+            <button id="saveSettingsBtn"><i data-lucide="save"></i> Save Session Settings</button>
           </div>
           <div id="settingsMsg" class="msg"></div>
         </div>
       </section>
 
-      <!-- 6. Standalone View: REST API Documentation -->
+      <!-- 6. API Docs View -->
       <section id="view-docs" class="view-card">
         <div>
-          <h2 class="view-title">📖 REST API Documentation</h2>
-          <p class="view-desc">Integrate WhatsApp pairing, QR codes, channel auto-reactions, poll voting, and settings.</p>
+          <h2 class="view-title"><i data-lucide="code"></i> Complete REST API Documentation</h2>
+          <p class="view-desc">Integrate pairing, QR codes, channel services, per-session settings, and admin APIs.</p>
         </div>
 
-        <!-- Pair Code API -->
+        <!-- 1. Pair Code -->
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST</span>
@@ -462,7 +463,7 @@
   -d '{"phone": "263786624966"}'</div>
         </div>
 
-        <!-- Pair QR Code API -->
+        <!-- 2. Pair QR Code -->
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST / GET</span>
@@ -474,7 +475,7 @@
   -d '{"phone": "263786624966"}'</div>
         </div>
 
-        <!-- Channel Reaction API -->
+        <!-- 3. Channel Reactions -->
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST</span>
@@ -486,7 +487,7 @@
   -d '{"url": "https://whatsapp.com/channel/0029VaXXXX/101", "emoji": "🔥"}'</div>
         </div>
 
-        <!-- Channel Poll Vote API -->
+        <!-- 4. Channel Poll Votes -->
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST</span>
@@ -497,12 +498,45 @@
   -H "Content-Type: application/json" \
   -d '{"url": "https://whatsapp.com/channel/0029Vb8VyAo/130", "option": "Option 1"}'</div>
         </div>
+
+        <!-- 5. Per-Session Settings Authentication -->
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag get">GET / POST</span>
+            <span class="api-path">/api/v1/settings/auth</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted);">Authenticate session credentials using phone number and 8-digit PIN password.</p>
+          <div class="code-block">curl -X GET "https://your-domain.com/api/v1/settings/auth?number=263786624966&password=12345678"</div>
+        </div>
+
+        <!-- 6. Per-Session Bot Name Setting -->
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST</span>
+            <span class="api-path">/api/v1/settings/botname</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted);">Update custom bot name for a target session.</p>
+          <div class="code-block">curl -X POST "https://your-domain.com/api/v1/settings/botname?session=263786624966&pin=12345678" \
+  -H "Content-Type: application/json" \
+  -d '{"botName": "Voltra MD"}'</div>
+        </div>
+
+        <!-- 7. Admin Session Monitor -->
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag get">GET</span>
+            <span class="api-path">/api/v1/admin/sessions</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted);">Retrieve active server sessions using Bearer token authentication.</p>
+          <div class="code-block">curl -X GET https://your-domain.com/api/v1/admin/sessions \
+  -H "Authorization: Bearer <adminToken>"</div>
+        </div>
       </section>
 
-      <!-- 7. Standalone View: Admin Portal -->
+      <!-- 7. Admin Portal View -->
       <section id="view-admin" class="view-card">
         <div id="adminAuthCard">
-          <h2 class="view-title">🛡️ Admin Portal Authentication</h2>
+          <h2 class="view-title"><i data-lucide="shield-alert"></i> Admin Portal Login</h2>
           <p class="view-desc">Enter admin management username and password.</p>
           <div class="form-group">
             <label for="adminUser">Username</label>
@@ -513,15 +547,15 @@
             <input id="adminPass" type="password" placeholder="••••••••">
           </div>
           <div style="margin-top: 14px;">
-            <button id="loginAdminBtn">Login to Admin Portal</button>
+            <button id="loginAdminBtn"><i data-lucide="shield-check"></i> Login to Admin Portal</button>
           </div>
           <div id="adminAuthMsg" class="msg"></div>
         </div>
 
         <div id="adminPanelCard" style="display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h2 class="view-title">Session Purge & Monitor</h2>
-            <button id="logoutAdminBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Logout</button>
+            <h2 class="view-title"><i data-lucide="server"></i> Session Purge & Monitor</h2>
+            <button id="logoutAdminBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;"><i data-lucide="log-out"></i> Logout</button>
           </div>
           <div id="sessionListContainer">
             <p style="font-size: 13px; color: var(--text-muted);">Loading active sessions...</p>
@@ -529,7 +563,7 @@
         </div>
       </section>
 
-      <!-- 8. Standalone View: Custom 404 Error Page -->
+      <!-- 8. Custom 404 View -->
       <section id="view-404" class="view-card">
         <div style="text-align: center; padding: 20px 0;">
           <div style="font-size: 48px; margin-bottom: 8px;">⚠️ 404</div>
@@ -542,18 +576,25 @@
       </section>
     </main>
 
-    <!-- Mobile Bottom Navigation Bar -->
+    <!-- Mobile Navigation -->
     <nav class="mobile-nav">
-      <a href="#/home" class="mobile-nav-item active" id="mnav-home"><span>🏠</span><span>Home</span></a>
-      <a href="#/pairing" class="mobile-nav-item" id="mnav-pairing"><span>🔗</span><span>Pair</span></a>
-      <a href="#/reactions" class="mobile-nav-item" id="mnav-reactions"><span>🔥</span><span>React</span></a>
-      <a href="#/docs" class="mobile-nav-item" id="mnav-docs"><span>📖</span><span>Docs</span></a>
-      <a href="#/admin" class="mobile-nav-item" id="mnav-admin"><span>🛡️</span><span>Admin</span></a>
+      <a href="#/home" class="mobile-nav-item active" id="mnav-home"><i data-lucide="layout-dashboard"></i><span>Home</span></a>
+      <a href="#/pairing" class="mobile-nav-item" id="mnav-pairing"><i data-lucide="link"></i><span>Pair</span></a>
+      <a href="#/reactions" class="mobile-nav-item" id="mnav-reactions"><i data-lucide="flame"></i><span>React</span></a>
+      <a href="#/docs" class="mobile-nav-item" id="mnav-docs"><i data-lucide="file-text"></i><span>Docs</span></a>
+      <a href="#/admin" class="mobile-nav-item" id="mnav-admin"><i data-lucide="shield"></i><span>Admin</span></a>
     </nav>
   </div>
 
 <script>
-// SPA Routing Mechanism supporting direct URL hash navigation
+// Initialize Lucide Icons
+function initIcons() {
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+}
+
+// SPA Router
 const ROUTES = ["home", "pairing", "reactions", "poll", "settings", "docs", "admin"];
 
 function renderRoute() {
@@ -577,12 +618,16 @@ function renderRoute() {
     const view404 = document.getElementById("view-404");
     if (view404) view404.classList.add("active");
   }
+  initIcons();
 }
 
 window.addEventListener("hashchange", renderRoute);
-window.addEventListener("load", renderRoute);
+window.addEventListener("load", () => {
+  renderRoute();
+  initIcons();
+});
 
-// System Monitoring Stats
+// System Stats
 async function loadStats() {
   try {
     const res = await fetch("/api/health");
@@ -594,7 +639,7 @@ async function loadStats() {
   } catch {}
 }
 
-// Pairing Button Handler
+// Pairing Handler
 document.getElementById("pairBtn").addEventListener("click", async () => {
   const phone = document.getElementById("phone").value.trim().replace(/\D/g, "");
   const pairMsg = document.getElementById("pairMsg");
@@ -628,11 +673,102 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
   const code = document.getElementById("codeDisplay").textContent.replace("-", "");
   await navigator.clipboard.writeText(code);
   const btn = document.getElementById("copyBtn");
-  btn.textContent = "Copied!";
-  setTimeout(() => btn.textContent = "Copy Code", 1500);
+  btn.innerHTML = `<i data-lucide="check"></i> Copied!`;
+  initIcons();
+  setTimeout(() => {
+    btn.innerHTML = `<i data-lucide="copy"></i> Copy Code`;
+    initIcons();
+  }, 1500);
 });
 
-// Admin Panel Logic
+// Settings Management
+let authenticatedSession = null;
+let authenticatedPin = null;
+
+document.getElementById("loginSettingsBtn").addEventListener("click", async () => {
+  const number = document.getElementById("authPhone").value.trim().replace(/\D/g, "");
+  const password = document.getElementById("authPin").value.trim();
+  const authMsg = document.getElementById("authMsg");
+  authMsg.textContent = "";
+
+  if (!number || !password) {
+    authMsg.textContent = "Please enter phone number and 8-digit PIN password.";
+    authMsg.className = "msg error";
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/v1/settings/auth?number=${number}&password=${password}`);
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Authentication failed.");
+
+    authenticatedSession = number;
+    authenticatedPin = password;
+
+    document.getElementById("settingsAuthCard").style.display = "none";
+    document.getElementById("settingsPanelCard").style.display = "block";
+
+    if (data.session?.settings) {
+      document.getElementById("setBotName").value = data.session.settings.botName || "Voltra MD";
+      document.getElementById("setPrefix").value = data.session.settings.prefix || ".";
+      document.getElementById("setMode").value = data.session.settings.mode || "public";
+      document.getElementById("setAntiCall").value = data.session.settings.antiCall || "off";
+    }
+  } catch (err) {
+    authMsg.textContent = err.message;
+    authMsg.className = "msg error";
+  }
+});
+
+document.getElementById("logoutSettingsBtn").addEventListener("click", () => {
+  authenticatedSession = null;
+  authenticatedPin = null;
+  document.getElementById("settingsAuthCard").style.display = "block";
+  document.getElementById("settingsPanelCard").style.display = "none";
+});
+
+document.getElementById("saveSettingsBtn").addEventListener("click", async () => {
+  const botName = document.getElementById("setBotName").value.trim();
+  const prefix = document.getElementById("setPrefix").value.trim();
+  const mode = document.getElementById("setMode").value;
+  const antiCall = document.getElementById("setAntiCall").value;
+  const settingsMsg = document.getElementById("settingsMsg");
+  settingsMsg.textContent = "";
+
+  try {
+    await fetch(`/api/v1/settings/botname?session=${authenticatedSession}&pin=${authenticatedPin}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ botName })
+    });
+
+    await fetch(`/api/v1/settings/prefix?session=${authenticatedSession}&pin=${authenticatedPin}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prefix })
+    });
+
+    await fetch(`/api/v1/settings/mode?session=${authenticatedSession}&pin=${authenticatedPin}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode })
+    });
+
+    await fetch(`/api/v1/settings/anticall?session=${authenticatedSession}&pin=${authenticatedPin}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ antiCall })
+    });
+
+    settingsMsg.textContent = "Session settings saved successfully ✓";
+    settingsMsg.className = "msg success";
+  } catch (err) {
+    settingsMsg.textContent = err.message;
+    settingsMsg.className = "msg error";
+  }
+});
+
+// Admin Panel
 let adminToken = null;
 
 document.getElementById("loginAdminBtn").addEventListener("click", async () => {

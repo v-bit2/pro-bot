@@ -289,7 +289,24 @@ app.all("/api/v1/settings/mode", (req, res) => {
   res.json({ ok: true, mode: auth.sessionCfg.mode });
 });
 
-// 2. Prefix API: /api/v1/settings/prefix
+// 2. Bot Name API: /api/v1/settings/botname
+app.all("/api/v1/settings/botname", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const botName = String(req.body?.botName || req.query?.botName || "").trim();
+  if (req.method === "POST" || botName) {
+    if (!botName) {
+      return res.status(400).json({ ok: false, error: "Missing botName value." });
+    }
+    const updated = updateSessionSettings(auth.session.id, { botName });
+    return res.json({ ok: true, message: `Session botName updated to '${botName}' ✓`, botName: updated.botName });
+  }
+
+  res.json({ ok: true, botName: auth.sessionCfg.botName || config.botName });
+});
+
+// 3. Prefix API: /api/v1/settings/prefix
 app.all("/api/v1/settings/prefix", (req, res) => {
   const auth = verifySessionSettingsAuth(req, res);
   if (!auth) return;
