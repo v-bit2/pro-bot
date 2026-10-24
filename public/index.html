@@ -36,11 +36,37 @@
       display: flex;
       width: 100%;
       min-height: 100vh;
+      position: relative;
+    }
+
+    /* Top Navbar for Mobile with Hamburger */
+    .top-navbar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #141720;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 0 16px;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+    }
+    .hamburger-btn {
+      background: transparent;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding: 8px;
+      width: auto;
+      box-shadow: none;
     }
 
     /* Sidebar */
     .sidebar {
-      width: 250px;
+      width: 260px;
       background: var(--sidebar-bg);
       border-right: 1px solid var(--panel-border);
       padding: 24px 16px;
@@ -48,6 +74,8 @@
       flex-direction: column;
       gap: 24px;
       flex-shrink: 0;
+      transition: transform 0.3s ease;
+      z-index: 150;
     }
     .brand-header {
       display: flex;
@@ -114,6 +142,51 @@
 
     .view-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
     .view-desc { font-size: 13px; color: var(--text-muted); }
+
+    /* Home Hero & Feature Table Styling */
+    .hero-banner {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: #0d0f14;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: var(--input-well);
+    }
+    .hero-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      object-fit: cover;
+      border: 3px solid #333b4e;
+    }
+    .hero-text h3 { font-size: 20px; font-weight: 800; color: #fff; }
+    .hero-text p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    .quick-nav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .quick-nav-btn {
+      padding: 12px;
+      font-size: 12px;
+      border-radius: 12px;
+    }
+
+    .feature-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    .feature-table th, .feature-table td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .feature-table th { color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 11px; }
 
     .form-group {
       display: flex;
@@ -254,41 +327,51 @@
       align-items: center;
     }
 
-    .mobile-nav {
+    /* Overlay for Mobile Sidebar */
+    .sidebar-overlay {
       display: none;
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #141720;
-      border-top: 1px solid var(--panel-border);
-      padding: 8px 12px;
-      justify-content: space-around;
-      z-index: 100;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 120;
     }
-    .mobile-nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 10px;
-      font-weight: 700;
-    }
-    .mobile-nav-item.active { color: var(--accent); }
 
     @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .mobile-nav { display: flex; }
-      .main-content { padding: 20px 16px 90px 16px; }
+      .top-navbar { display: flex; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay.active {
+        display: block;
+      }
+      .main-content { padding: 80px 16px 40px 16px; }
     }
   </style>
 </head>
 <body>
   <div class="app-layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
+    <!-- Top Mobile Header with Hamburger -->
+    <header class="top-navbar">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="/assets/voltra-mini.jpg" alt="Voltra" style="width: 32px; height: 32px; border-radius: 10px;">
+        <span style="font-weight: 800; font-size: 16px; color: #fff;">Voltra MD</span>
+      </div>
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle Navigation">
+        <i data-lucide="menu"></i>
+      </button>
+    </header>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="appSidebar">
       <div class="brand-header">
         <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="brand-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'44\' height=\'44\'><rect width=\'44\' height=\'44\' fill=\'%236366f1\'/><text x=\'22\' y=\'28\' font-size=\'20\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
         <div class="brand-title">
@@ -313,10 +396,19 @@
     <main class="main-content">
       <!-- 1. Home View -->
       <section id="view-home" class="view-card active">
+        <div class="hero-banner">
+          <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="hero-avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><rect width=\'80\' height=\'80\' fill=\'%236366f1\'/><text x=\'40\' y=\'52\' font-size=\'36\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
+          <div class="hero-text">
+            <h3>Voltra MD Engine</h3>
+            <p>Tactile Multi-Session Control Center & Bot Management System</p>
+          </div>
+        </div>
+
         <div>
           <h2 class="view-title"><i data-lucide="activity"></i> System Monitor</h2>
-          <p class="view-desc">Live performance metrics and connected WhatsApp session count.</p>
+          <p class="view-desc">Live metrics and active session statistics.</p>
         </div>
+
         <div class="metric-grid">
           <div class="metric-card">
             <div class="metric-val" id="activeSessionsVal">0</div>
@@ -327,13 +419,63 @@
             <div class="metric-lbl">Server Process Uptime</div>
           </div>
         </div>
+
+        <div style="margin-top: 10px;">
+          <h2 class="view-title"><i data-lucide="navigation"></i> Navigation Quick-Links</h2>
+          <div class="quick-nav-grid">
+            <a href="#/pairing" style="text-decoration:none;"><button class="quick-nav-btn"><i data-lucide="link"></i> Pair Device</button></a>
+            <a href="#/reactions" style="text-decoration:none;"><button class="quick-nav-btn btn-secondary"><i data-lucide="flame"></i> Reactions</button></a>
+            <a href="#/settings" style="text-decoration:none;"><button class="quick-nav-btn btn-secondary"><i data-lucide="settings"></i> Settings</button></a>
+            <a href="#/docs" style="text-decoration:none;"><button class="quick-nav-btn btn-secondary"><i data-lucide="file-text"></i> API Docs</button></a>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <h2 class="view-title"><i data-lucide="layers"></i> Bot Features Overview</h2>
+          <table class="feature-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Description</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Multi-Session Pairing</td>
+                <td>Connect multiple WhatsApp accounts simultaneously with pairing code or QR code.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+              <tr>
+                <td>MongoDB Persistence</td>
+                <td>Automatic debounced auth state backups and redeployment restoration.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+              <tr>
+                <td>Per-Session Settings</td>
+                <td>Custom prefix, multi-prefixes, bot name, and anti-call toggles per session.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+              <tr>
+                <td>Channel Auto-Reactions</td>
+                <td>Broadcast post reactions across all active connected sessions.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+              <tr>
+                <td>Song & MP3 Downloader</td>
+                <td>Search and fetch YouTube audio streams into WhatsApp MP3 voice notes.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <!-- 2. Pairing View -->
       <section id="view-pairing" class="view-card">
         <div>
           <h2 class="view-title"><i data-lucide="smartphone"></i> Pair New Device</h2>
-          <p class="view-desc">Generate an 8-character WhatsApp pairing code or QR code for your session.</p>
+          <p class="view-desc">Generate an 8-character WhatsApp pairing code for your session.</p>
         </div>
         <div class="form-group">
           <label for="phone">Phone Number</label>
@@ -418,8 +560,8 @@
             <input id="setBotName" type="text" placeholder="Voltra MD">
           </div>
           <div class="form-group">
-            <label for="setPrefix">Custom Prefix</label>
-            <input id="setPrefix" type="text" placeholder=".">
+            <label for="setPrefix">Custom Prefix / Multi-Prefixes (e.g. # or #,$)</label>
+            <input id="setPrefix" type="text" placeholder=".,#,$,%">
           </div>
           <div class="form-group">
             <label for="setMode">Bot Operating Mode</label>
@@ -575,18 +717,22 @@
         </div>
       </section>
     </main>
-
-    <!-- Mobile Navigation -->
-    <nav class="mobile-nav">
-      <a href="#/home" class="mobile-nav-item active" id="mnav-home"><i data-lucide="layout-dashboard"></i><span>Home</span></a>
-      <a href="#/pairing" class="mobile-nav-item" id="mnav-pairing"><i data-lucide="link"></i><span>Pair</span></a>
-      <a href="#/reactions" class="mobile-nav-item" id="mnav-reactions"><i data-lucide="flame"></i><span>React</span></a>
-      <a href="#/docs" class="mobile-nav-item" id="mnav-docs"><i data-lucide="file-text"></i><span>Docs</span></a>
-      <a href="#/admin" class="mobile-nav-item" id="mnav-admin"><i data-lucide="shield"></i><span>Admin</span></a>
-    </nav>
   </div>
 
 <script>
+// Mobile Hamburger Sidebar Toggle
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const appSidebar = document.getElementById("appSidebar");
+const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+function toggleSidebar() {
+  appSidebar.classList.toggle("open");
+  sidebarOverlay.classList.toggle("active");
+}
+
+if (hamburgerBtn) hamburgerBtn.addEventListener("click", toggleSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener("click", toggleSidebar);
+
 // Initialize Lucide Icons
 function initIcons() {
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -603,7 +749,6 @@ function renderRoute() {
 
   document.querySelectorAll(".view-card").forEach(el => el.classList.remove("active"));
   document.querySelectorAll(".nav-item a").forEach(el => el.classList.remove("active"));
-  document.querySelectorAll(".mobile-nav-item").forEach(el => el.classList.remove("active"));
 
   if (ROUTES.includes(route)) {
     const targetView = document.getElementById(`view-${route}`);
@@ -611,13 +756,15 @@ function renderRoute() {
 
     const navLink = document.getElementById(`nav-${route}`);
     if (navLink) navLink.classList.add("active");
-
-    const mnavLink = document.getElementById(`mnav-${route}`);
-    if (mnavLink) mnavLink.classList.add("active");
   } else {
     const view404 = document.getElementById("view-404");
     if (view404) view404.classList.add("active");
   }
+
+  // Close mobile sidebar if open
+  appSidebar.classList.remove("open");
+  sidebarOverlay.classList.remove("active");
+
   initIcons();
 }
 
@@ -638,6 +785,66 @@ async function loadStats() {
     }
   } catch {}
 }
+
+// Channel Reaction Handler
+document.getElementById("reactBtn").addEventListener("click", async () => {
+  const url = document.getElementById("reactUrl").value.trim();
+  const emoji = document.getElementById("reactEmoji").value.trim() || null;
+  const reactMsg = document.getElementById("reactMsg");
+  reactMsg.textContent = "";
+
+  if (!url) {
+    reactMsg.textContent = "Please enter a valid channel post URL.";
+    reactMsg.className = "msg error";
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/v1/services/chreact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, emoji })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Reaction failed.");
+
+    reactMsg.textContent = data.message || "Reaction successfully sent!";
+    reactMsg.className = "msg success";
+  } catch (err) {
+    reactMsg.textContent = err.message;
+    reactMsg.className = "msg error";
+  }
+});
+
+// Channel Poll Vote Handler
+document.getElementById("pollBtn").addEventListener("click", async () => {
+  const url = document.getElementById("pollUrl").value.trim();
+  const option = document.getElementById("pollOption").value.trim() || "Option 1";
+  const pollMsg = document.getElementById("pollMsg");
+  pollMsg.textContent = "";
+
+  if (!url) {
+    pollMsg.textContent = "Please enter a valid channel poll URL.";
+    pollMsg.className = "msg error";
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/v1/services/pollvt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, option })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Poll vote failed.");
+
+    pollMsg.textContent = data.message || "Poll vote successfully sent!";
+    pollMsg.className = "msg success";
+  } catch (err) {
+    pollMsg.textContent = err.message;
+    pollMsg.className = "msg error";
+  }
+});
 
 // Pairing Handler
 document.getElementById("pairBtn").addEventListener("click", async () => {
@@ -760,7 +967,7 @@ document.getElementById("saveSettingsBtn").addEventListener("click", async () =>
       body: JSON.stringify({ antiCall })
     });
 
-    settingsMsg.textContent = "Session settings saved successfully ✓";
+    settingsMsg.textContent = "Session settings saved & synced with WhatsApp ✓";
     settingsMsg.className = "msg success";
   } catch (err) {
     settingsMsg.textContent = err.message;
