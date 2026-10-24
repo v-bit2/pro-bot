@@ -254,6 +254,36 @@ function verifySessionSettingsAuth(req, res) {
   return { session, sessionCfg };
 }
 
+// Unified Settings Endpoint: /api/v1/settings?number=<number>&password=<password>
+app.all("/api/v1/settings", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  if (req.method === "POST" || Object.keys(req.body || {}).length > 0) {
+    const updates = {};
+    if (req.body.botName !== undefined) updates.botName = String(req.body.botName).trim();
+    if (req.body.prefix !== undefined) updates.prefix = String(req.body.prefix).trim();
+    if (req.body.mode !== undefined && ["public", "private", "self"].includes(req.body.mode)) updates.mode = req.body.mode;
+    if (req.body.antiCall !== undefined && ["off", "on", "block"].includes(req.body.antiCall)) updates.antiCall = req.body.antiCall;
+    if (req.body.autoStatus !== undefined) updates.autoStatus = Boolean(req.body.autoStatus);
+    if (req.body.msgReaction !== undefined && ["off", "on"].includes(req.body.msgReaction)) updates.msgReaction = req.body.msgReaction;
+
+    const updated = updateSessionSettings(auth.session.id, updates);
+    return res.json({
+      ok: true,
+      message: "Session settings updated and synced with WhatsApp ✓",
+      settings: updated
+    });
+  }
+
+  res.json({
+    ok: true,
+    sessionId: auth.session.id,
+    phone: auth.session.phone,
+    settings: auth.sessionCfg
+  });
+});
+
 // Settings Authentication Endpoint: /api/v1/settings/auth?number=<number>&password=<password>
 app.all("/api/v1/settings/auth", (req, res) => {
   const auth = verifySessionSettingsAuth(req, res);

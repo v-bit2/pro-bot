@@ -2,44 +2,12 @@ import axios from "axios";
 import yts from "yt-search";
 import { toMp3 } from "../lib/converter.js";
 
-const AXIOS_HEADERS = {
-  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-  "Accept": "*/*"
-};
-
-function pickAudioUrl(data) {
-  if (!data) return null;
-  const res = data?.result ?? data?.data ?? data;
-  const candidates = [
-    res?.downloadURL, res?.downloadUrl, res?.download, res?.url, res?.link, res?.mp3, res?.audio,
-    res?.data?.download_url, res?.result?.url, data?.downloadURL, data?.downloadUrl, data?.url
-  ];
-  return candidates.find(c => typeof c === "string" && /^https?:\/\//i.test(c));
-}
-
 function sanitizeFileName(title) {
   return String(title || "audio")
     .replace(/[^\w\s\-\.\(\)\[\]]+/g, "")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 80) || "audio";
-}
-
-async function downloadAudioBuffer(url) {
-  const response = await axios.get(url, {
-    responseType: "arraybuffer",
-    timeout: 90000,
-    headers: AXIOS_HEADERS
-  });
-  const buf = Buffer.from(response.data);
-  const sample = buf.slice(0, 64).toString("utf8").toLowerCase();
-  if (sample.includes("<!doctype") || sample.includes("<html")) {
-    throw new Error("Provider returned HTML webpage instead of audio buffer.");
-  }
-  if (buf.length < 5000) {
-    throw new Error("Downloaded audio file is empty or corrupted.");
-  }
-  return buf;
 }
 
 export const command = {
@@ -57,7 +25,7 @@ export const command = {
     const query = args.join(" ").trim();
 
     try {
-      // 1. Resolve YouTube video metadata
+      // 1. Resolve YouTube video URL via yt-search
       let video;
       if (/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)/i.test(query)) {
         const match = query.match(/(?:watch\?v=|embed\/|v\/|shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -76,13 +44,13 @@ export const command = {
         return;
       }
 
-      // 2. Notify user with thumbnail and details
+      // Send downloading notification with thumbnail
       if (video.thumbnail) {
         await sock.sendMessage(
           remoteJid,
           {
             image: { url: video.thumbnail },
-            caption: `🎵 Downloading: *${video.title}*\n👤 Channel: ${video.author?.name || "N/A"}\n⏱ Duration: ${video.timestamp || "N/A"}`
+            caption: `🎵 Downloading: *${video.title}*\n⏱ Duration: ${video.timestamp || "N/A"}`
           },
           { quoted: message }
         );
@@ -90,39 +58,32 @@ export const command = {
         await reply(`🎵 Downloading: *${video.title}*`);
       }
 
-      // 3. Multi-provider download endpoints waterfall using resolved video URL
-      const endpoints = [
-        `https://prexzyapis.com/download/ytmp3?url=${encodeURIComponent(video.url)}&format=mp3`,
-        `https://apis.emmyhenztech.xyz/api/ytmp3-mobi?youtubeUrl=${encodeURIComponent(video.url)}`,
-        `https://apis.emmyhenztech.xyz/api/clipto?url=${encodeURIComponent(video.url)}`,
-        `https://apis.emmyhenztech.xyz/api/ssvid?url=${encodeURIComponent(video.url)}`,
-        `https://api.yupra.my.id/api/downloader/ytmp3?url=${encodeURIComponent(video.url)}`
-      ];
+      // 2. Query PrexzyAPIs endpoint directly
+      const apiUrl = `https://prexzyapis.com/download/ytmp3?url=${encodeURIComponent(video.url)}&format=mp3`;
+      const apiRes = await axios.get(apiUrl, {
+        timeout: 45000,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+      });
 
-      let rawBuffer = null;
-      let downloadTitle = video.title;
+      const audioUrl = apiRes.data?.downloadURL || apiRes.data?.downloadUrl || apiRes.data?.url || apiRes.data?.result?.downloadURL;
 
-      for (const endpoint of endpoints) {
-        try {
-          const apiRes = await axios.get(endpoint, { timeout: 25000, headers: AXIOS_HEADERS });
-          const audioUrl = pickAudioUrl(apiRes.data);
-          if (!audioUrl) continue;
-
-          rawBuffer = await downloadAudioBuffer(audioUrl);
-          if (apiRes.data?.title || apiRes.data?.result?.title) {
-            downloadTitle = apiRes.data.title || apiRes.data.result.title;
-          }
-          if (rawBuffer && rawBuffer.length > 5000) break;
-        } catch (e) {
-          console.warn("[Song Downloader] Provider failed:", e.message);
-        }
+      if (!audioUrl || typeof audioUrl !== "string") {
+        throw new Error("Prexzy API did not return a valid audio download URL.");
       }
 
-      if (!rawBuffer) {
-        throw new Error("All YouTube download providers failed. Please try again later.");
+      // 3. Download the audio file arraybuffer directly into memory
+      const audioResponse = await axios.get(audioUrl, {
+        responseType: "arraybuffer",
+        timeout: 90000,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+      });
+
+      const rawBuffer = Buffer.from(audioResponse.data);
+      if (!rawBuffer || rawBuffer.length < 5000) {
+        throw new Error("Downloaded audio file is empty or corrupted.");
       }
 
-      // 4. Convert stream to standard MP3 buffer
+      // 4. Convert stream to clean MP3 buffer
       let mp3Buffer;
       try {
         mp3Buffer = await toMp3(rawBuffer, "mp3");
@@ -130,9 +91,10 @@ export const command = {
         mp3Buffer = rawBuffer;
       }
 
-      const safeTitle = sanitizeFileName(downloadTitle);
+      const songTitle = apiRes.data?.title || video.title;
+      const safeTitle = sanitizeFileName(songTitle);
 
-      // 5. Deliver audio message to WhatsApp chat
+      // 5. Send audio file to WhatsApp chat
       await sock.sendMessage(
         remoteJid,
         {

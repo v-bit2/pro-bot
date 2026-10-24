@@ -3,31 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>⚡ Voltra MD — Tactile Control Center</title>
+  <title>⚡ Voltra MD — Control Center</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      --bg: #111318;
-      --panel-bg: linear-gradient(145deg, #1e222d, #141720);
-      --sidebar-bg: #161922;
-      --panel-border: #282e3d;
+      --bg: #07080c;
+      --panel-bg: linear-gradient(145deg, #111522, #0b0e17);
+      --sidebar-bg: #0c0f18;
+      --panel-border: #1e2638;
       --text-main: #e2e8f0;
-      --text-muted: #8a99ad;
-      --accent: #6366f1;
-      --accent-grad: linear-gradient(145deg, #6366f1, #4f46e5);
+      --text-muted: #7f8ea3;
+      --accent: #2563eb;
+      --accent-grad: linear-gradient(145deg, #2563eb, #1d4ed8);
+      --accent-shadow: rgba(37, 99, 235, 0.4);
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --input-well: inset 3px 3px 6px #0b0c10, inset -3px -3px 6px #1f2430;
-      --card-shadow: 10px 10px 20px #0a0b0e, -10px -10px 20px #1a1e28;
-      --btn-shadow: 5px 5px 10px #0b0c10, -5px -5px 10px #212634;
-      --btn-active: inset 3px 3px 6px #0b0c10, inset -3px -3px 6px #212634;
+      --input-well: inset 2px 2px 4px #050608, inset -2px -2px 4px #151a26;
+      --card-shadow: 8px 8px 16px #040508, -8px -8px 16px #121622;
+      --btn-shadow: 4px 4px 8px #040508, -4px -4px 8px #151b2a;
+      --btn-active: inset 2px 2px 4px #040508, inset -2px -2px 4px #151b2a;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
       display: flex;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text-main);
     }
@@ -39,17 +40,17 @@
       position: relative;
     }
 
-    /* Top Navbar for Mobile with Hamburger */
+    /* Top Navbar */
     .top-navbar {
       display: none;
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      height: 60px;
-      background: #141720;
+      height: 52px;
+      background: #0b0e17;
       border-bottom: 1px solid var(--panel-border);
-      padding: 0 16px;
+      padding: 0 14px;
       align-items: center;
       justify-content: space-between;
       z-index: 100;
@@ -59,20 +60,20 @@
       border: none;
       color: #fff;
       cursor: pointer;
-      padding: 8px;
+      padding: 6px;
       width: auto;
       box-shadow: none;
     }
 
     /* Sidebar */
     .sidebar {
-      width: 260px;
+      width: 220px;
       background: var(--sidebar-bg);
       border-right: 1px solid var(--panel-border);
-      padding: 24px 16px;
+      padding: 18px 12px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 18px;
       flex-shrink: 0;
       transition: transform 0.3s ease;
       z-index: 150;
@@ -80,50 +81,50 @@
     .brand-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding-bottom: 16px;
+      gap: 10px;
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--panel-border);
     }
     .brand-logo {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
       object-fit: cover;
-      border: 2px solid #333b4e;
+      border: 2px solid #2563eb;
     }
-    .brand-title h2 { font-size: 18px; font-weight: 800; color: #fff; }
-    .brand-title p { font-size: 11px; color: var(--text-muted); }
+    .brand-title h2 { font-size: 16px; font-weight: 800; color: #fff; }
+    .brand-title p { font-size: 10px; color: var(--text-muted); }
 
     .nav-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
       list-style: none;
     }
     .nav-item a {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      border-radius: 14px;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
       color: var(--text-muted);
       text-decoration: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       transition: all 0.2s;
     }
     .nav-item a:hover, .nav-item a.active {
       color: #fff;
       background: var(--panel-bg);
-      box-shadow: 4px 4px 8px #0d0e13, -4px -4px 8px #1f2431;
-      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 3px 3px 6px #040508, -3px -3px 6px #161b2a;
+      border: 1px solid rgba(59, 130, 246, 0.2);
     }
 
     /* Main Content */
     .main-content {
       flex: 1;
-      padding: 32px 24px 80px 24px;
-      max-width: 900px;
+      padding: 24px 20px 60px 20px;
+      max-width: 800px;
       margin: 0 auto;
       width: 100%;
     }
@@ -131,78 +132,78 @@
     .view-card {
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
-      border-radius: 24px;
-      padding: 28px;
+      border-radius: 18px;
+      padding: 20px;
       box-shadow: var(--card-shadow);
       display: none;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
     .view-card.active { display: flex; }
 
-    .view-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
-    .view-desc { font-size: 13px; color: var(--text-muted); }
+    .view-title { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+    .view-desc { font-size: 12px; color: var(--text-muted); }
 
-    /* Home Hero & Feature Table Styling */
+    /* Compact Hero & Feature Table */
     .hero-banner {
       display: flex;
       align-items: center;
-      gap: 20px;
-      background: #0d0f14;
-      padding: 20px;
-      border-radius: 20px;
+      gap: 14px;
+      background: #090b12;
+      padding: 14px;
+      border-radius: 14px;
       box-shadow: var(--input-well);
     }
     .hero-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
       object-fit: cover;
-      border: 3px solid #333b4e;
+      border: 2px solid #2563eb;
     }
-    .hero-text h3 { font-size: 20px; font-weight: 800; color: #fff; }
-    .hero-text p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .hero-text h3 { font-size: 16px; font-weight: 800; color: #fff; }
+    .hero-text p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
     .quick-nav-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-top: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 6px;
     }
     .quick-nav-btn {
-      padding: 12px;
-      font-size: 12px;
-      border-radius: 12px;
+      padding: 10px;
+      font-size: 11px;
+      border-radius: 10px;
     }
 
     .feature-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 13px;
+      margin-top: 6px;
+      font-size: 12px;
     }
     .feature-table th, .feature-table td {
-      padding: 12px 14px;
+      padding: 10px 12px;
       text-align: left;
       border-bottom: 1px solid var(--panel-border);
     }
-    .feature-table th { color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 11px; }
+    .feature-table th { color: #60a5fa; font-weight: 700; text-transform: uppercase; font-size: 10px; }
 
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
+      gap: 6px;
+      margin-top: 8px;
     }
-    label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    label { font-size: 11px; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px; }
     input, select {
       width: 100%;
-      padding: 14px 16px;
-      border-radius: 14px;
-      border: 1px solid #1a1e28;
-      background: #0d0f14;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #1a2233;
+      background: #07090e;
       color: var(--text-main);
-      font-size: 15px;
+      font-size: 13px;
       outline: none;
       box-shadow: var(--input-well);
       transition: border-color 0.2s;
@@ -211,18 +212,18 @@
 
     button {
       width: 100%;
-      padding: 14px;
-      border-radius: 14px;
+      padding: 11px;
+      border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.1);
       background: var(--accent-grad);
       color: #fff;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       box-shadow: var(--btn-shadow);
       transition: transform 0.1s, box-shadow 0.1s;
     }
@@ -232,107 +233,120 @@
     }
 
     .btn-secondary {
-      background: linear-gradient(145deg, #242936, #1a1d27);
+      background: linear-gradient(145deg, #182030, #101622);
       color: #e2e8f0;
       box-shadow: var(--btn-shadow);
     }
     .btn-danger {
-      background: linear-gradient(145deg, #ef4444, #dc2626);
+      background: linear-gradient(145deg, #dc2626, #b91c1c);
       color: #fff;
       box-shadow: var(--btn-shadow);
     }
 
     .code-display {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 32px;
+      font-size: 26px;
       font-weight: 800;
-      letter-spacing: 4px;
-      color: #38bdf8;
-      margin: 14px 0;
-      padding: 16px;
-      background: #090a0d;
-      border-radius: 16px;
+      letter-spacing: 3px;
+      color: #60a5fa;
+      margin: 10px 0;
+      padding: 12px;
+      background: #050608;
+      border-radius: 12px;
       box-shadow: var(--input-well);
       text-align: center;
     }
 
-    .msg { font-size: 13px; text-align: center; font-weight: 600; margin-top: 10px; }
+    .msg { font-size: 12px; text-align: center; font-weight: 600; margin-top: 8px; }
     .msg.error { color: var(--danger); }
     .msg.success { color: var(--success); }
 
     .metric-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-top: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
     }
     .metric-card {
-      background: #0d0f14;
-      padding: 18px;
-      border-radius: 18px;
+      background: #07090e;
+      padding: 14px;
+      border-radius: 14px;
       box-shadow: var(--input-well);
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 2px;
     }
-    .metric-val { font-size: 24px; font-weight: 800; color: #fff; }
-    .metric-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+    .metric-val { font-size: 20px; font-weight: 800; color: #fff; }
+    .metric-lbl { font-size: 10px; color: var(--text-muted); font-weight: 600; }
 
     /* API Docs */
     .api-card {
-      background: #0d0f14;
-      border-radius: 16px;
-      padding: 18px;
-      margin-top: 12px;
+      background: #07090e;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 8px;
       box-shadow: var(--input-well);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
     .api-header {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
     .method-tag {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 800;
-      padding: 4px 8px;
-      border-radius: 6px;
+      padding: 3px 6px;
+      border-radius: 4px;
       text-transform: uppercase;
     }
-    .method-tag.post { background: #6366f1; color: #fff; }
+    .method-tag.post { background: #2563eb; color: #fff; }
     .method-tag.get { background: #10b981; color: #fff; }
     .method-tag.delete { background: #ef4444; color: #fff; }
-    .api-path { font-family: monospace; font-size: 14px; font-weight: 700; color: #38bdf8; }
+    .api-path { font-family: monospace; font-size: 12px; font-weight: 700; color: #60a5fa; }
     .code-block {
-      background: #06070a;
-      border-radius: 10px;
-      padding: 12px;
+      background: #040507;
+      border-radius: 8px;
+      padding: 10px;
       font-family: monospace;
-      font-size: 12px;
-      color: #a7f3d0;
+      font-size: 11px;
+      color: #93c5fd;
       white-space: pre-wrap;
       word-break: break-all;
     }
 
     .session-item {
-      background: #0d0f14;
-      border-radius: 16px;
-      padding: 16px;
-      margin-top: 10px;
+      background: #07090e;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
       box-shadow: var(--input-well);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    /* Overlay for Mobile Sidebar */
+    /* Loading Spinner */
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     .sidebar-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.7);
       z-index: 120;
     }
 
@@ -351,17 +365,17 @@
       .sidebar-overlay.active {
         display: block;
       }
-      .main-content { padding: 80px 16px 40px 16px; }
+      .main-content { padding: 70px 14px 30px 14px; }
     }
   </style>
 </head>
 <body>
   <div class="app-layout">
-    <!-- Top Mobile Header with Hamburger -->
+    <!-- Top Mobile Header -->
     <header class="top-navbar">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <img src="/assets/voltra-mini.jpg" alt="Voltra" style="width: 32px; height: 32px; border-radius: 10px;">
-        <span style="font-weight: 800; font-size: 16px; color: #fff;">Voltra MD</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <img src="/assets/voltra-mini.jpg" alt="Voltra" style="width: 28px; height: 28px; border-radius: 8px;">
+        <span style="font-weight: 800; font-size: 15px; color: #fff;">Voltra MD</span>
       </div>
       <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle Navigation">
         <i data-lucide="menu"></i>
@@ -370,13 +384,13 @@
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar -->
     <aside class="sidebar" id="appSidebar">
       <div class="brand-header">
-        <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="brand-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'44\' height=\'44\'><rect width=\'44\' height=\'44\' fill=\'%236366f1\'/><text x=\'22\' y=\'28\' font-size=\'20\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
+        <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="brand-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'36\' height=\'36\'><rect width=\'36\' height=\'36\' fill=\'%232563eb\'/><text x=\'18\' y=\'24\' font-size=\'18\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
         <div class="brand-title">
           <h2>Voltra MD</h2>
-          <p>Tactile Control Center</p>
+          <p>Control Center</p>
         </div>
       </div>
       <nav>
@@ -392,21 +406,21 @@
       </nav>
     </aside>
 
-    <!-- Main Content Container -->
+    <!-- Main Content -->
     <main class="main-content">
       <!-- 1. Home View -->
       <section id="view-home" class="view-card active">
         <div class="hero-banner">
-          <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="hero-avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><rect width=\'80\' height=\'80\' fill=\'%236366f1\'/><text x=\'40\' y=\'52\' font-size=\'36\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
+          <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="hero-avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'><rect width=\'56\' height=\'56\' fill=\'%232563eb\'/><text x=\'28\' y=\'36\' font-size=\'24\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
           <div class="hero-text">
             <h3>Voltra MD Engine</h3>
-            <p>Tactile Multi-Session Control Center & Bot Management System</p>
+            <p>Tactile Control Center & Bot Management System</p>
           </div>
         </div>
 
         <div>
           <h2 class="view-title"><i data-lucide="activity"></i> System Monitor</h2>
-          <p class="view-desc">Live metrics and active session statistics.</p>
+          <p class="view-desc">Live performance metrics and active session count.</p>
         </div>
 
         <div class="metric-grid">
@@ -420,8 +434,8 @@
           </div>
         </div>
 
-        <div style="margin-top: 10px;">
-          <h2 class="view-title"><i data-lucide="navigation"></i> Navigation Quick-Links</h2>
+        <div style="margin-top: 6px;">
+          <h2 class="view-title"><i data-lucide="navigation"></i> Quick Navigation</h2>
           <div class="quick-nav-grid">
             <a href="#/pairing" style="text-decoration:none;"><button class="quick-nav-btn"><i data-lucide="link"></i> Pair Device</button></a>
             <a href="#/reactions" style="text-decoration:none;"><button class="quick-nav-btn btn-secondary"><i data-lucide="flame"></i> Reactions</button></a>
@@ -430,7 +444,7 @@
           </div>
         </div>
 
-        <div style="margin-top: 10px;">
+        <div style="margin-top: 6px;">
           <h2 class="view-title"><i data-lucide="layers"></i> Bot Features Overview</h2>
           <table class="feature-table">
             <thead>
@@ -443,22 +457,22 @@
             <tbody>
               <tr>
                 <td>Multi-Session Pairing</td>
-                <td>Connect multiple WhatsApp accounts simultaneously with pairing code or QR code.</td>
+                <td>Pair multiple WhatsApp accounts via code or QR code.</td>
                 <td><span style="color: var(--success); font-weight:700;">Active</span></td>
               </tr>
               <tr>
                 <td>MongoDB Persistence</td>
-                <td>Automatic debounced auth state backups and redeployment restoration.</td>
+                <td>Debounced auth state backups and auto-restoration.</td>
                 <td><span style="color: var(--success); font-weight:700;">Active</span></td>
               </tr>
               <tr>
                 <td>Per-Session Settings</td>
-                <td>Custom prefix, multi-prefixes, bot name, and anti-call toggles per session.</td>
+                <td>Custom prefix, multi-prefixes, bot name, anti-call per session.</td>
                 <td><span style="color: var(--success); font-weight:700;">Active</span></td>
               </tr>
               <tr>
                 <td>Channel Auto-Reactions</td>
-                <td>Broadcast post reactions across all active connected sessions.</td>
+                <td>Broadcast post reactions across active connected sessions.</td>
                 <td><span style="color: var(--success); font-weight:700;">Active</span></td>
               </tr>
               <tr>
@@ -481,10 +495,10 @@
           <label for="phone">Phone Number</label>
           <input id="phone" type="tel" placeholder="263786624966">
         </div>
-        <div style="margin-top: 10px;">
-          <button id="pairBtn"><i data-lucide="key"></i> Get Pairing Code</button>
+        <div style="margin-top: 8px;">
+          <button id="pairBtn"><i data-lucide="key"></i> <span id="pairBtnText">Get Pairing Code</span></button>
         </div>
-        <div id="result" style="display: none; margin-top: 10px;">
+        <div id="result" style="display: none; margin-top: 8px;">
           <div id="codeDisplay" class="code-display">--------</div>
           <button id="copyBtn" class="btn-secondary"><i data-lucide="copy"></i> Copy Code</button>
         </div>
@@ -505,8 +519,8 @@
           <label for="reactEmoji">Emoji (Optional)</label>
           <input id="reactEmoji" type="text" placeholder="🔥">
         </div>
-        <div style="margin-top: 10px;">
-          <button id="reactBtn"><i data-lucide="send"></i> Send Reactions</button>
+        <div style="margin-top: 8px;">
+          <button id="reactBtn"><i data-lucide="send"></i> <span id="reactBtnText">Send Reactions</span></button>
         </div>
         <div id="reactMsg" class="msg"></div>
       </section>
@@ -525,8 +539,8 @@
           <label for="pollOption">Option Choice</label>
           <input id="pollOption" type="text" placeholder="Option 1">
         </div>
-        <div style="margin-top: 10px;">
-          <button id="pollBtn"><i data-lucide="vote"></i> Submit Vote</button>
+        <div style="margin-top: 8px;">
+          <button id="pollBtn"><i data-lucide="vote"></i> <span id="pollBtnText">Submit Vote</span></button>
         </div>
         <div id="pollMsg" class="msg"></div>
       </section>
@@ -544,16 +558,16 @@
             <label for="authPin">8-Digit Session PIN Password</label>
             <input id="authPin" type="password" maxlength="8" placeholder="12345678">
           </div>
-          <div style="margin-top: 14px;">
-            <button id="loginSettingsBtn"><i data-lucide="key-round"></i> Authenticate Session</button>
+          <div style="margin-top: 10px;">
+            <button id="loginSettingsBtn"><i data-lucide="key-round"></i> <span id="loginSettingsBtnText">Authenticate Session</span></button>
           </div>
           <div id="authMsg" class="msg"></div>
         </div>
 
         <div id="settingsPanelCard" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <h2 class="view-title"><i data-lucide="sliders"></i> Per-Session Settings</h2>
-            <button id="logoutSettingsBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;"><i data-lucide="log-out"></i> Lock</button>
+            <button id="logoutSettingsBtn" class="btn-secondary" style="width: auto; padding: 5px 10px; font-size: 11px;"><i data-lucide="log-out"></i> Lock</button>
           </div>
           <div class="form-group">
             <label for="setBotName">Bot Name</label>
@@ -579,8 +593,8 @@
               <option value="block">Reject & Block Caller</option>
             </select>
           </div>
-          <div style="margin-top: 14px;">
-            <button id="saveSettingsBtn"><i data-lucide="save"></i> Save Session Settings</button>
+          <div style="margin-top: 10px;">
+            <button id="saveSettingsBtn"><i data-lucide="save"></i> <span id="saveSettingsBtnText">Save Session Settings</span></button>
           </div>
           <div id="settingsMsg" class="msg"></div>
         </div>
@@ -593,85 +607,48 @@
           <p class="view-desc">Integrate pairing, QR codes, channel services, per-session settings, and admin APIs.</p>
         </div>
 
-        <!-- 1. Pair Code -->
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST</span>
             <span class="api-path">/api/v1/pair/code</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Request an 8-character pairing code for device linking.</p>
+          <p style="font-size: 11px; color: var(--text-muted);">Request an 8-character pairing code for device linking.</p>
           <div class="code-block">curl -X POST https://your-domain.com/api/v1/pair/code \
   -H "Content-Type: application/json" \
   -d '{"phone": "263786624966"}'</div>
         </div>
 
-        <!-- 2. Pair QR Code -->
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST / GET</span>
             <span class="api-path">/api/v1/pair/qrcode</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Initialize QR pairing session and retrieve QR code string.</p>
+          <p style="font-size: 11px; color: var(--text-muted);">Initialize QR pairing session and retrieve QR code string.</p>
           <div class="code-block">curl -X POST https://your-domain.com/api/v1/pair/qrcode \
   -H "Content-Type: application/json" \
   -d '{"phone": "263786624966"}'</div>
         </div>
 
-        <!-- 3. Channel Reactions -->
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST / GET</span>
+            <span class="api-path">/api/v1/settings</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted);">Query or update all per-session settings (`botName`, `prefix`, `mode`, `antiCall`) in one unified call.</p>
+          <div class="code-block">curl -X POST "https://your-domain.com/api/v1/settings?session=263786624966&pin=12345678" \
+  -H "Content-Type: application/json" \
+  -d '{"botName": "Voltra MD", "prefix": ".,#,$,%", "mode": "public", "antiCall": "on"}'</div>
+        </div>
+
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST</span>
             <span class="api-path">/api/v1/services/chreact</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Broadcast post reactions across connected sessions.</p>
+          <p style="font-size: 11px; color: var(--text-muted);">Broadcast post reactions across connected sessions.</p>
           <div class="code-block">curl -X POST https://your-domain.com/api/v1/services/chreact \
   -H "Content-Type: application/json" \
   -d '{"url": "https://whatsapp.com/channel/0029VaXXXX/101", "emoji": "🔥"}'</div>
-        </div>
-
-        <!-- 4. Channel Poll Votes -->
-        <div class="api-card">
-          <div class="api-header">
-            <span class="method-tag post">POST</span>
-            <span class="api-path">/api/v1/services/pollvt</span>
-          </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Submit votes on channel poll posts.</p>
-          <div class="code-block">curl -X POST https://your-domain.com/api/v1/services/pollvt \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://whatsapp.com/channel/0029Vb8VyAo/130", "option": "Option 1"}'</div>
-        </div>
-
-        <!-- 5. Per-Session Settings Authentication -->
-        <div class="api-card">
-          <div class="api-header">
-            <span class="method-tag get">GET / POST</span>
-            <span class="api-path">/api/v1/settings/auth</span>
-          </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Authenticate session credentials using phone number and 8-digit PIN password.</p>
-          <div class="code-block">curl -X GET "https://your-domain.com/api/v1/settings/auth?number=263786624966&password=12345678"</div>
-        </div>
-
-        <!-- 6. Per-Session Bot Name Setting -->
-        <div class="api-card">
-          <div class="api-header">
-            <span class="method-tag post">POST</span>
-            <span class="api-path">/api/v1/settings/botname</span>
-          </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Update custom bot name for a target session.</p>
-          <div class="code-block">curl -X POST "https://your-domain.com/api/v1/settings/botname?session=263786624966&pin=12345678" \
-  -H "Content-Type: application/json" \
-  -d '{"botName": "Voltra MD"}'</div>
-        </div>
-
-        <!-- 7. Admin Session Monitor -->
-        <div class="api-card">
-          <div class="api-header">
-            <span class="method-tag get">GET</span>
-            <span class="api-path">/api/v1/admin/sessions</span>
-          </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Retrieve active server sessions using Bearer token authentication.</p>
-          <div class="code-block">curl -X GET https://your-domain.com/api/v1/admin/sessions \
-  -H "Authorization: Bearer <adminToken>"</div>
         </div>
       </section>
 
@@ -688,30 +665,30 @@
             <label for="adminPass">Password</label>
             <input id="adminPass" type="password" placeholder="••••••••">
           </div>
-          <div style="margin-top: 14px;">
-            <button id="loginAdminBtn"><i data-lucide="shield-check"></i> Login to Admin Portal</button>
+          <div style="margin-top: 10px;">
+            <button id="loginAdminBtn"><i data-lucide="shield-check"></i> <span id="loginAdminBtnText">Login to Admin Portal</span></button>
           </div>
           <div id="adminAuthMsg" class="msg"></div>
         </div>
 
         <div id="adminPanelCard" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <h2 class="view-title"><i data-lucide="server"></i> Session Purge & Monitor</h2>
-            <button id="logoutAdminBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;"><i data-lucide="log-out"></i> Logout</button>
+            <button id="logoutAdminBtn" class="btn-secondary" style="width: auto; padding: 5px 10px; font-size: 11px;"><i data-lucide="log-out"></i> Logout</button>
           </div>
           <div id="sessionListContainer">
-            <p style="font-size: 13px; color: var(--text-muted);">Loading active sessions...</p>
+            <p style="font-size: 12px; color: var(--text-muted);">Loading active sessions...</p>
           </div>
         </div>
       </section>
 
       <!-- 8. Custom 404 View -->
       <section id="view-404" class="view-card">
-        <div style="text-align: center; padding: 20px 0;">
-          <div style="font-size: 48px; margin-bottom: 8px;">⚠️ 404</div>
+        <div style="text-align: center; padding: 16px 0;">
+          <div style="font-size: 40px; margin-bottom: 6px;">⚠️ 404</div>
           <h2 class="view-title">Page Not Found</h2>
-          <p class="view-desc" style="margin-top: 6px;">The route you are trying to access does not exist.</p>
-          <div style="margin-top: 20px; max-width: 200px; margin-left: auto; margin-right: auto;">
+          <p class="view-desc" style="margin-top: 4px;">The route you are trying to access does not exist.</p>
+          <div style="margin-top: 16px; max-width: 180px; margin-left: auto; margin-right: auto;">
             <a href="#/home" style="text-decoration: none;"><button>Return to Home</button></a>
           </div>
         </div>
@@ -720,7 +697,7 @@
   </div>
 
 <script>
-// Mobile Hamburger Sidebar Toggle
+// Hamburger Sidebar
 const hamburgerBtn = document.getElementById("hamburgerBtn");
 const appSidebar = document.getElementById("appSidebar");
 const sidebarOverlay = document.getElementById("sidebarOverlay");
@@ -733,14 +710,13 @@ function toggleSidebar() {
 if (hamburgerBtn) hamburgerBtn.addEventListener("click", toggleSidebar);
 if (sidebarOverlay) sidebarOverlay.addEventListener("click", toggleSidebar);
 
-// Initialize Lucide Icons
 function initIcons() {
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     lucide.createIcons();
   }
 }
 
-// SPA Router
+// Router
 const ROUTES = ["home", "pairing", "reactions", "poll", "settings", "docs", "admin"];
 
 function renderRoute() {
@@ -761,10 +737,8 @@ function renderRoute() {
     if (view404) view404.classList.add("active");
   }
 
-  // Close mobile sidebar if open
   appSidebar.classList.remove("open");
   sidebarOverlay.classList.remove("active");
-
   initIcons();
 }
 
@@ -774,7 +748,6 @@ window.addEventListener("load", () => {
   initIcons();
 });
 
-// System Stats
 async function loadStats() {
   try {
     const res = await fetch("/api/health");
@@ -786,70 +759,11 @@ async function loadStats() {
   } catch {}
 }
 
-// Channel Reaction Handler
-document.getElementById("reactBtn").addEventListener("click", async () => {
-  const url = document.getElementById("reactUrl").value.trim();
-  const emoji = document.getElementById("reactEmoji").value.trim() || null;
-  const reactMsg = document.getElementById("reactMsg");
-  reactMsg.textContent = "";
-
-  if (!url) {
-    reactMsg.textContent = "Please enter a valid channel post URL.";
-    reactMsg.className = "msg error";
-    return;
-  }
-
-  try {
-    const res = await fetch("/api/v1/services/chreact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, emoji })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || "Reaction failed.");
-
-    reactMsg.textContent = data.message || "Reaction successfully sent!";
-    reactMsg.className = "msg success";
-  } catch (err) {
-    reactMsg.textContent = err.message;
-    reactMsg.className = "msg error";
-  }
-});
-
-// Channel Poll Vote Handler
-document.getElementById("pollBtn").addEventListener("click", async () => {
-  const url = document.getElementById("pollUrl").value.trim();
-  const option = document.getElementById("pollOption").value.trim() || "Option 1";
-  const pollMsg = document.getElementById("pollMsg");
-  pollMsg.textContent = "";
-
-  if (!url) {
-    pollMsg.textContent = "Please enter a valid channel poll URL.";
-    pollMsg.className = "msg error";
-    return;
-  }
-
-  try {
-    const res = await fetch("/api/v1/services/pollvt", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, option })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || "Poll vote failed.");
-
-    pollMsg.textContent = data.message || "Poll vote successfully sent!";
-    pollMsg.className = "msg success";
-  } catch (err) {
-    pollMsg.textContent = err.message;
-    pollMsg.className = "msg error";
-  }
-});
-
-// Pairing Handler
+// Pairing Handler with Spinner
 document.getElementById("pairBtn").addEventListener("click", async () => {
   const phone = document.getElementById("phone").value.trim().replace(/\D/g, "");
   const pairMsg = document.getElementById("pairMsg");
+  const pairBtnText = document.getElementById("pairBtnText");
   pairMsg.textContent = "";
 
   if (!phone) {
@@ -857,6 +771,8 @@ document.getElementById("pairBtn").addEventListener("click", async () => {
     pairMsg.className = "msg error";
     return;
   }
+
+  pairBtnText.innerHTML = `<span class="spinner"></span> Generating...`;
 
   try {
     const res = await fetch("/api/v1/pair/code", {
@@ -873,6 +789,8 @@ document.getElementById("pairBtn").addEventListener("click", async () => {
   } catch (err) {
     pairMsg.textContent = err.message;
     pairMsg.className = "msg error";
+  } finally {
+    pairBtnText.textContent = "Get Pairing Code";
   }
 });
 
@@ -888,7 +806,7 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
   }, 1500);
 });
 
-// Settings Management
+// Settings Management with Spinner
 let authenticatedSession = null;
 let authenticatedPin = null;
 
@@ -896,6 +814,7 @@ document.getElementById("loginSettingsBtn").addEventListener("click", async () =
   const number = document.getElementById("authPhone").value.trim().replace(/\D/g, "");
   const password = document.getElementById("authPin").value.trim();
   const authMsg = document.getElementById("authMsg");
+  const btnText = document.getElementById("loginSettingsBtnText");
   authMsg.textContent = "";
 
   if (!number || !password) {
@@ -904,8 +823,10 @@ document.getElementById("loginSettingsBtn").addEventListener("click", async () =
     return;
   }
 
+  btnText.innerHTML = `<span class="spinner"></span> Verifying...`;
+
   try {
-    const res = await fetch(`/api/v1/settings/auth?number=${number}&password=${password}`);
+    const res = await fetch(`/api/v1/settings?number=${number}&password=${password}`);
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error(data.error || "Authentication failed.");
 
@@ -915,15 +836,17 @@ document.getElementById("loginSettingsBtn").addEventListener("click", async () =
     document.getElementById("settingsAuthCard").style.display = "none";
     document.getElementById("settingsPanelCard").style.display = "block";
 
-    if (data.session?.settings) {
-      document.getElementById("setBotName").value = data.session.settings.botName || "Voltra MD";
-      document.getElementById("setPrefix").value = data.session.settings.prefix || ".";
-      document.getElementById("setMode").value = data.session.settings.mode || "public";
-      document.getElementById("setAntiCall").value = data.session.settings.antiCall || "off";
+    if (data.settings) {
+      document.getElementById("setBotName").value = data.settings.botName || "Voltra MD";
+      document.getElementById("setPrefix").value = data.settings.prefix || ".";
+      document.getElementById("setMode").value = data.settings.mode || "public";
+      document.getElementById("setAntiCall").value = data.settings.antiCall || "off";
     }
   } catch (err) {
     authMsg.textContent = err.message;
     authMsg.className = "msg error";
+  } finally {
+    btnText.textContent = "Authenticate Session";
   }
 });
 
@@ -940,49 +863,41 @@ document.getElementById("saveSettingsBtn").addEventListener("click", async () =>
   const mode = document.getElementById("setMode").value;
   const antiCall = document.getElementById("setAntiCall").value;
   const settingsMsg = document.getElementById("settingsMsg");
+  const btnText = document.getElementById("saveSettingsBtnText");
   settingsMsg.textContent = "";
 
+  btnText.innerHTML = `<span class="spinner"></span> Saving...`;
+
   try {
-    await fetch(`/api/v1/settings/botname?session=${authenticatedSession}&pin=${authenticatedPin}`, {
+    const res = await fetch(`/api/v1/settings?session=${authenticatedSession}&pin=${authenticatedPin}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ botName })
+      body: JSON.stringify({ botName, prefix, mode, antiCall })
     });
-
-    await fetch(`/api/v1/settings/prefix?session=${authenticatedSession}&pin=${authenticatedPin}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prefix })
-    });
-
-    await fetch(`/api/v1/settings/mode?session=${authenticatedSession}&pin=${authenticatedPin}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode })
-    });
-
-    await fetch(`/api/v1/settings/anticall?session=${authenticatedSession}&pin=${authenticatedPin}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ antiCall })
-    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Save failed.");
 
     settingsMsg.textContent = "Session settings saved & synced with WhatsApp ✓";
     settingsMsg.className = "msg success";
   } catch (err) {
     settingsMsg.textContent = err.message;
     settingsMsg.className = "msg error";
+  } finally {
+    btnText.textContent = "Save Session Settings";
   }
 });
 
-// Admin Panel
+// Admin Panel with Spinner
 let adminToken = null;
 
 document.getElementById("loginAdminBtn").addEventListener("click", async () => {
   const username = document.getElementById("adminUser").value.trim();
   const password = document.getElementById("adminPass").value.trim();
   const msg = document.getElementById("adminAuthMsg");
+  const btnText = document.getElementById("loginAdminBtnText");
   msg.textContent = "";
+
+  btnText.innerHTML = `<span class="spinner"></span> Logging in...`;
 
   try {
     const res = await fetch("/api/v1/admin/login", {
@@ -1001,6 +916,8 @@ document.getElementById("loginAdminBtn").addEventListener("click", async () => {
   } catch (err) {
     msg.textContent = err.message;
     msg.className = "msg error";
+  } finally {
+    btnText.textContent = "Login to Admin Portal";
   }
 });
 
@@ -1022,21 +939,21 @@ async function loadAdminSessions() {
     if (!data.ok) throw new Error(data.error || "Failed to load sessions.");
 
     if (!data.sessions || data.sessions.length === 0) {
-      container.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">No active sessions found.</p>`;
+      container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No active sessions found.</p>`;
       return;
     }
 
     container.innerHTML = data.sessions.map(s => `
       <div class="session-item">
         <div>
-          <div style="font-weight: 800; font-size: 14px; color: #fff;">${s.sessionId}</div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Phone: +${s.phone || 'N/A'} • Status: <span style="color: #38bdf8;">${s.status}</span></div>
+          <div style="font-weight: 800; font-size: 13px; color: #fff;">${s.sessionId}</div>
+          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Phone: +${s.phone || 'N/A'} • Status: <span style="color: #60a5fa;">${s.status}</span></div>
         </div>
-        <button class="btn-danger" style="width: auto; padding: 6px 12px; font-size: 12px;" onclick="deleteAdminSession('${s.sessionId}')">Purge & Delete</button>
+        <button class="btn-danger" style="width: auto; padding: 5px 10px; font-size: 11px;" onclick="deleteAdminSession('${s.sessionId}')">Purge & Delete</button>
       </div>
     `).join('');
   } catch (err) {
-    container.innerHTML = `<p style="font-size: 13px; color: var(--danger);">${err.message}</p>`;
+    container.innerHTML = `<p style="font-size: 12px; color: var(--danger);">${err.message}</p>`;
   }
 }
 
