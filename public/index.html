@@ -6,120 +6,121 @@
   <title>⚡ Voltra MD — Tactile Control Center</title>
   <style>
     :root {
-      --bg: #181b22;
-      --panel-bg: linear-gradient(145deg, #20242f, #161920);
+      --bg: #111318;
+      --panel-bg: linear-gradient(145deg, #1e222d, #141720);
+      --sidebar-bg: #161922;
       --panel-border: #282e3d;
       --text-main: #e2e8f0;
       --text-muted: #8a99ad;
       --accent: #6366f1;
       --accent-grad: linear-gradient(145deg, #6366f1, #4f46e5);
-      --accent-shadow: rgba(99, 102, 241, 0.4);
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --input-well: inset 3px 3px 6px #101217, inset -3px -3px 6px #242935;
-      --card-shadow: 10px 10px 20px #0f1116, -10px -10px 20px #212530;
-      --btn-shadow: 5px 5px 10px #111319, -5px -5px 10px #252a37;
-      --btn-active: inset 3px 3px 6px #111319, inset -3px -3px 6px #252a37;
+      --input-well: inset 3px 3px 6px #0b0c10, inset -3px -3px 6px #1f2430;
+      --card-shadow: 10px 10px 20px #0a0b0e, -10px -10px 20px #1a1e28;
+      --btn-shadow: 5px 5px 10px #0b0c10, -5px -5px 10px #212634;
+      --btn-active: inset 3px 3px 6px #0b0c10, inset -3px -3px 6px #212634;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 30px 16px;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text-main);
     }
-    .container {
-      width: min(680px, 100%);
+
+    /* Layout Structure */
+    .app-layout {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* Tactile Sidebar for Desktop */
+    .sidebar {
+      width: 250px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--panel-border);
+      padding: 24px 16px;
       display: flex;
       flex-direction: column;
       gap: 24px;
+      flex-shrink: 0;
     }
-
-    /* Skeuomorphic Header Panel */
-    .header-panel {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: var(--card-shadow);
+    .brand-header {
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--panel-border);
     }
-    .bot-dial {
-      width: 64px;
-      height: 64px;
-      border-radius: 20px;
-      object-fit: cover;
-      border: 3px solid #2e3546;
-      box-shadow: 4px 4px 8px #0f1116, -4px -4px 8px #212530;
-    }
-    .bot-dial-fallback {
-      width: 64px;
-      height: 64px;
-      border-radius: 20px;
-      background: linear-gradient(145deg, #6366f1, #3b82f6);
-      display: grid;
-      place-items: center;
-      font-size: 32px;
-      box-shadow: 4px 4px 8px #0f1116, -4px -4px 8px #212530;
-    }
-    .title h1 { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
-    .title p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
-
-    /* Tactile Navigation Bar */
-    .nav-tabs {
-      display: flex;
-      background: #14161c;
-      padding: 6px;
-      border-radius: 18px;
-      box-shadow: inset 2px 2px 5px #0d0e12, inset -2px -2px 5px #1b1e26;
-      gap: 4px;
-      overflow-x: auto;
-    }
-    .nav-tab {
-      flex: 1;
-      padding: 10px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      background: transparent;
-      border: none;
+    .brand-logo {
+      width: 44px;
+      height: 44px;
       border-radius: 14px;
-      cursor: pointer;
-      text-align: center;
-      white-space: nowrap;
-      transition: all 0.2s ease;
+      object-fit: cover;
+      border: 2px solid #333b4e;
     }
-    .nav-tab.active {
+    .brand-title h2 { font-size: 18px; font-weight: 800; color: #fff; }
+    .brand-title p { font-size: 11px; color: var(--text-muted); }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      list-style: none;
+    }
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .nav-item a:hover, .nav-item a.active {
       color: #fff;
       background: var(--panel-bg);
-      box-shadow: 3px 3px 6px #0d0e12, -3px -3px 6px #1e222b;
+      box-shadow: 4px 4px 8px #0d0e13, -4px -4px 8px #1f2431;
       border: 1px solid rgba(255,255,255,0.05);
     }
 
-    /* Tab Content Cards */
-    .tab-content { display: none; }
-    .tab-content.active { display: flex; flex-direction: column; gap: 20px; }
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      padding: 32px 24px 80px 24px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
 
-    .card {
+    .view-card {
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: 24px;
-      padding: 24px;
+      padding: 28px;
       box-shadow: var(--card-shadow);
+      display: none;
+      flex-direction: column;
+      gap: 20px;
     }
+    .view-card.active { display: flex; }
 
+    .view-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .view-desc { font-size: 13px; color: var(--text-muted); }
+
+    /* Form Inputs & Controls */
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-top: 14px;
+      margin-top: 10px;
     }
     label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
     input, select {
@@ -127,7 +128,7 @@
       padding: 14px 16px;
       border-radius: 14px;
       border: 1px solid #1a1e28;
-      background: #12141a;
+      background: #0d0f14;
       color: var(--text-main);
       font-size: 15px;
       outline: none;
@@ -136,7 +137,6 @@
     }
     input:focus, select:focus { border-color: var(--accent); }
 
-    /* Tactile Skeuomorphic Button */
     button {
       width: 100%;
       padding: 14px;
@@ -158,7 +158,6 @@
       box-shadow: var(--btn-active);
       transform: translateY(1px);
     }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .btn-secondary {
       background: linear-gradient(145deg, #242936, #1a1d27);
@@ -179,59 +178,39 @@
       color: #38bdf8;
       margin: 14px 0;
       padding: 16px;
-      background: #111318;
+      background: #090a0d;
       border-radius: 16px;
       box-shadow: var(--input-well);
       text-align: center;
     }
 
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      background: #12141a;
-      box-shadow: var(--input-well);
-    }
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--text-muted);
-    }
-    .status-badge.connected .badge-dot { background: var(--success); box-shadow: 0 0 10px var(--success); }
-    .status-badge.pairing .badge-dot { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
-
-    .msg { font-size: 13px; margin-top: 12px; text-align: center; font-weight: 600; }
+    .msg { font-size: 13px; text-align: center; font-weight: 600; margin-top: 10px; }
     .msg.error { color: var(--danger); }
     .msg.success { color: var(--success); }
 
     .metric-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-top: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
     }
     .metric-card {
-      background: #12141a;
-      padding: 16px;
-      border-radius: 16px;
+      background: #0d0f14;
+      padding: 18px;
+      border-radius: 18px;
       box-shadow: var(--input-well);
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
-    .metric-val { font-size: 22px; font-weight: 800; color: #fff; }
+    .metric-val { font-size: 24px; font-weight: 800; color: #fff; }
     .metric-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
     /* API Docs Styling */
     .api-card {
-      background: #12141a;
+      background: #0d0f14;
       border-radius: 16px;
-      padding: 16px;
+      padding: 18px;
       margin-top: 12px;
       box-shadow: var(--input-well);
       display: flex;
@@ -255,7 +234,7 @@
     .method-tag.delete { background: #ef4444; color: #fff; }
     .api-path { font-family: monospace; font-size: 14px; font-weight: 700; color: #38bdf8; }
     .code-block {
-      background: #0b0c0f;
+      background: #06070a;
       border-radius: 10px;
       padding: 12px;
       font-family: monospace;
@@ -267,7 +246,7 @@
 
     /* Admin Session Monitor List */
     .session-item {
-      background: #12141a;
+      background: #0d0f14;
       border-radius: 16px;
       padding: 16px;
       margin-top: 10px;
@@ -277,41 +256,70 @@
       align-items: center;
     }
 
-    footer {
-      text-align: center;
-      font-size: 12px;
+    /* Bottom Navigation Bar for Mobile */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #141720;
+      border-top: 1px solid var(--panel-border);
+      padding: 8px 12px;
+      justify-content: space-around;
+      z-index: 100;
+    }
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
       color: var(--text-muted);
-      margin-top: 10px;
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .mobile-nav-item.active { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .mobile-nav { display: flex; }
+      .main-content { padding: 20px 16px 90px 16px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <header class="header-panel">
-      <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="bot-dial" onerror="this.style.display='none'; document.getElementById('fallbackAvatar').style.display='grid';">
-      <div id="fallbackAvatar" class="bot-dial-fallback" style="display: none;">⚡</div>
-      <div class="title">
-        <h1>Voltra MD</h1>
-        <p>Tactile Multi-Session Control Center</p>
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand-header">
+        <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="brand-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'44\' height=\'44\'><rect width=\'44\' height=\'44\' fill=\'%236366f1\'/><text x=\'22\' y=\'28\' font-size=\'20\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
+        <div class="brand-title">
+          <h2>Voltra MD</h2>
+          <p>Tactile Control Center</p>
+        </div>
       </div>
-    </header>
+      <nav>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#/home" id="nav-home" class="active">🏠 Home Dashboard</a></li>
+          <li class="nav-item"><a href="#/pairing" id="nav-pairing">🔗 Pair Device</a></li>
+          <li class="nav-item"><a href="#/reactions" id="nav-reactions">🔥 Channel Reactions</a></li>
+          <li class="nav-item"><a href="#/poll" id="nav-poll">📊 Poll Voting</a></li>
+          <li class="nav-item"><a href="#/settings" id="nav-settings">⚙️ Settings Manager</a></li>
+          <li class="nav-item"><a href="#/docs" id="nav-docs">📖 REST API Docs</a></li>
+          <li class="nav-item"><a href="#/admin" id="nav-admin">🛡️ Admin Portal</a></li>
+        </ul>
+      </nav>
+    </aside>
 
-    <!-- Navigation Tabs -->
-    <nav class="nav-tabs">
-      <button class="nav-tab active" onclick="switchTab('home')">🏠 Home</button>
-      <button class="nav-tab" onclick="switchTab('pairing')">🔗 Pairing</button>
-      <button class="nav-tab" onclick="switchTab('reactions')">🔥 Reactions</button>
-      <button class="nav-tab" onclick="switchTab('poll')">📊 Poll Votes</button>
-      <button class="nav-tab" onclick="switchTab('settings')">⚙️ Settings</button>
-      <button class="nav-tab" onclick="switchTab('docs')">📖 API Docs</button>
-      <button class="nav-tab" onclick="switchTab('admin')">🛡️ Admin</button>
-    </nav>
-
-    <!-- Tab 1: Home Dashboard -->
-    <section id="tab-home" class="tab-content active">
-      <div class="card">
-        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 10px;">System Monitor</div>
+    <!-- Main View Content Container -->
+    <main class="main-content">
+      <!-- 1. Standalone View: Home -->
+      <section id="view-home" class="view-card active">
+        <div>
+          <h2 class="view-title">System Monitor</h2>
+          <p class="view-desc">Live performance metrics and connected WhatsApp session count.</p>
+        </div>
         <div class="metric-grid">
           <div class="metric-card">
             <div class="metric-val" id="activeSessionsVal">0</div>
@@ -319,35 +327,37 @@
           </div>
           <div class="metric-card">
             <div class="metric-val" id="uptimeVal">0s</div>
-            <div class="metric-lbl">Server Uptime</div>
+            <div class="metric-lbl">Server Process Uptime</div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Tab 2: Pairing -->
-    <section id="tab-pairing" class="tab-content">
-      <div class="card">
-        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">Link New Device</div>
+      <!-- 2. Standalone View: Pairing -->
+      <section id="view-pairing" class="view-card">
+        <div>
+          <h2 class="view-title">Pair New Device</h2>
+          <p class="view-desc">Generate an 8-character WhatsApp pairing code for your session.</p>
+        </div>
         <div class="form-group">
           <label for="phone">Phone Number</label>
           <input id="phone" type="tel" placeholder="263786624966">
         </div>
-        <div style="margin-top: 18px;">
+        <div style="margin-top: 10px;">
           <button id="pairBtn">Get Pairing Code</button>
         </div>
-        <div id="result" style="display: none; margin-top: 16px;">
+        <div id="result" style="display: none; margin-top: 10px;">
           <div id="codeDisplay" class="code-display">--------</div>
           <button id="copyBtn" class="btn-secondary">Copy Code</button>
         </div>
         <div id="pairMsg" class="msg"></div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Tab 3: Channel Reactions -->
-    <section id="tab-reactions" class="tab-content">
-      <div class="card">
-        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">Channel Post Reaction</div>
+      <!-- 3. Standalone View: Channel Reactions -->
+      <section id="view-reactions" class="view-card">
+        <div>
+          <h2 class="view-title">Channel Post Reaction</h2>
+          <p class="view-desc">Broadcast emoji reactions to WhatsApp channel posts across sessions.</p>
+        </div>
         <div class="form-group">
           <label for="reactUrl">Channel Post URL</label>
           <input id="reactUrl" type="url" placeholder="https://whatsapp.com/channel/0029VaXXXXXX/101">
@@ -356,192 +366,224 @@
           <label for="reactEmoji">Emoji (Optional)</label>
           <input id="reactEmoji" type="text" placeholder="🔥">
         </div>
-        <div style="margin-top: 18px;">
+        <div style="margin-top: 10px;">
           <button id="reactBtn">Send Reactions</button>
         </div>
         <div id="reactMsg" class="msg"></div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Tab 4: Poll Votes -->
-    <section id="tab-poll" class="tab-content">
-      <div class="card">
-        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">Channel Poll Voting</div>
+      <!-- 4. Standalone View: Poll Votes -->
+      <section id="view-poll" class="view-card">
+        <div>
+          <h2 class="view-title">Channel Poll Voting</h2>
+          <p class="view-desc">Submit votes on WhatsApp channel poll posts.</p>
+        </div>
         <div class="form-group">
           <label for="pollUrl">Channel Poll URL</label>
-          <input id="pollUrl" type="url" placeholder="https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130">
+          <input id="pollUrl" type="url" placeholder="https://whatsapp.com/channel/0029Vb8VyAo/130">
         </div>
         <div class="form-group">
           <label for="pollOption">Option Choice</label>
           <input id="pollOption" type="text" placeholder="Option 1">
         </div>
-        <div style="margin-top: 18px;">
-          <button id="pollBtn">Send Poll Vote</button>
+        <div style="margin-top: 10px;">
+          <button id="pollBtn">Submit Vote</button>
         </div>
         <div id="pollMsg" class="msg"></div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Tab 5: Settings Management (Authenticated) -->
-    <section id="tab-settings" class="tab-content">
-      <div class="card" id="settingsAuthCard">
-        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">Settings Login Verification</div>
-        <div class="form-group">
-          <label for="authPhone">Phone Number / Session ID</label>
-          <input id="authPhone" type="tel" placeholder="263786624966">
-        </div>
-        <div class="form-group">
-          <label for="authPin">8-Digit Session PIN Password</label>
-          <input id="authPin" type="password" maxlength="8" placeholder="12345678">
-        </div>
-        <div style="margin-top: 18px;">
-          <button id="loginSettingsBtn">Authenticate Session</button>
-        </div>
-        <div id="authMsg" class="msg"></div>
-      </div>
-
-      <div class="card" id="settingsPanelCard" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <div style="font-size: 16px; font-weight: 800; color: #fff;">Session Settings Manager</div>
-          <button id="logoutSettingsBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Lock</button>
+      <!-- 5. Standalone View: Authenticated Settings -->
+      <section id="view-settings" class="view-card">
+        <div id="settingsAuthCard">
+          <h2 class="view-title">Settings Verification</h2>
+          <p class="view-desc">Enter your session phone number and 8-digit PIN password.</p>
+          <div class="form-group">
+            <label for="authPhone">Phone Number / Session ID</label>
+            <input id="authPhone" type="tel" placeholder="263786624966">
+          </div>
+          <div class="form-group">
+            <label for="authPin">8-Digit Session PIN Password</label>
+            <input id="authPin" type="password" maxlength="8" placeholder="12345678">
+          </div>
+          <div style="margin-top: 14px;">
+            <button id="loginSettingsBtn">Authenticate Session</button>
+          </div>
+          <div id="authMsg" class="msg"></div>
         </div>
 
-        <div class="form-group">
-          <label for="setMode">Bot Operating Mode</label>
-          <select id="setMode">
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-            <option value="self">Self Only</option>
-          </select>
+        <div id="settingsPanelCard" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2 class="view-title">Session Settings Manager</h2>
+            <button id="logoutSettingsBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Lock</button>
+          </div>
+          <div class="form-group">
+            <label for="setMode">Bot Operating Mode</label>
+            <select id="setMode">
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+              <option value="self">Self Only</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="setPrefix">Custom Prefix</label>
+            <input id="setPrefix" type="text" placeholder=".">
+          </div>
+          <div class="form-group">
+            <label for="setAntiCall">Anti-Call Setting</label>
+            <select id="setAntiCall">
+              <option value="off">Off</option>
+              <option value="on">Reject Calls</option>
+              <option value="block">Reject & Block Caller</option>
+            </select>
+          </div>
+          <div style="margin-top: 14px;">
+            <button id="saveSettingsBtn">Save Settings</button>
+          </div>
+          <div id="settingsMsg" class="msg"></div>
+        </div>
+      </section>
+
+      <!-- 6. Standalone View: REST API Documentation -->
+      <section id="view-docs" class="view-card">
+        <div>
+          <h2 class="view-title">📖 REST API Documentation</h2>
+          <p class="view-desc">Integrate WhatsApp pairing, QR codes, channel auto-reactions, poll voting, and settings.</p>
         </div>
 
-        <div class="form-group">
-          <label for="setPrefix">Custom Prefix</label>
-          <input id="setPrefix" type="text" placeholder=".">
-        </div>
-
-        <div class="form-group">
-          <label for="setAntiCall">Anti-Call Setting</label>
-          <select id="setAntiCall">
-            <option value="off">Off</option>
-            <option value="on">Reject Calls</option>
-            <option value="block">Reject & Block Caller</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="setAntiCallWl">Anti-Call Whitelist Number</label>
-          <input id="setAntiCallWl" type="tel" placeholder="263786624966">
-        </div>
-
-        <div style="margin-top: 18px;">
-          <button id="saveSettingsBtn">Save Session Settings</button>
-        </div>
-        <div id="settingsMsg" class="msg"></div>
-      </div>
-    </section>
-
-    <!-- Tab 6: API Documentation -->
-    <section id="tab-docs" class="tab-content">
-      <div class="card">
-        <div style="font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 6px;">⚡ Voltra MD REST API Reference</div>
-        <p style="font-size: 13px; color: var(--text-muted);">Integrate WhatsApp pairing, channel auto-reactions, poll voting, and session settings directly into your applications.</p>
-
-        <!-- 1. Pair Code -->
+        <!-- Pair Code API -->
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST</span>
             <span class="api-path">/api/v1/pair/code</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Request a WhatsApp 8-character pairing code for device connection.</p>
+          <p style="font-size: 12px; color: var(--text-muted);">Request an 8-character pairing code for device linking.</p>
           <div class="code-block">curl -X POST https://your-domain.com/api/v1/pair/code \
   -H "Content-Type: application/json" \
   -d '{"phone": "263786624966"}'</div>
         </div>
 
-        <!-- 2. Channel Reaction -->
+        <!-- Pair QR Code API -->
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST / GET</span>
+            <span class="api-path">/api/v1/pair/qrcode</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted);">Initialize QR pairing session and retrieve QR code string.</p>
+          <div class="code-block">curl -X POST https://your-domain.com/api/v1/pair/qrcode \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "263786624966"}'</div>
+        </div>
+
+        <!-- Channel Reaction API -->
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST</span>
             <span class="api-path">/api/v1/services/chreact</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted);">React to a WhatsApp channel post across all active connected sessions.</p>
+          <p style="font-size: 12px; color: var(--text-muted);">Broadcast post reactions across connected sessions.</p>
           <div class="code-block">curl -X POST https://your-domain.com/api/v1/services/chreact \
   -H "Content-Type: application/json" \
   -d '{"url": "https://whatsapp.com/channel/0029VaXXXX/101", "emoji": "🔥"}'</div>
         </div>
 
-        <!-- 3. Channel Poll Vote -->
+        <!-- Channel Poll Vote API -->
         <div class="api-card">
           <div class="api-header">
             <span class="method-tag post">POST</span>
             <span class="api-path">/api/v1/services/pollvt</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Submit poll votes on a WhatsApp channel poll post.</p>
+          <p style="font-size: 12px; color: var(--text-muted);">Submit votes on channel poll posts.</p>
           <div class="code-block">curl -X POST https://your-domain.com/api/v1/services/pollvt \
   -H "Content-Type: application/json" \
   -d '{"url": "https://whatsapp.com/channel/0029Vb8VyAo/130", "option": "Option 1"}'</div>
         </div>
+      </section>
 
-        <!-- 4. Settings Management -->
-        <div class="api-card">
-          <div class="api-header">
-            <span class="method-tag post">POST</span>
-            <span class="api-path">/api/v1/settings/mode</span>
+      <!-- 7. Standalone View: Admin Portal -->
+      <section id="view-admin" class="view-card">
+        <div id="adminAuthCard">
+          <h2 class="view-title">🛡️ Admin Portal Authentication</h2>
+          <p class="view-desc">Enter admin management username and password.</p>
+          <div class="form-group">
+            <label for="adminUser">Username</label>
+            <input id="adminUser" type="text" placeholder="voltra">
           </div>
-          <p style="font-size: 12px; color: var(--text-muted);">Update bot operating mode requiring phone number & session PIN.</p>
-          <div class="code-block">curl -X POST "https://your-domain.com/api/v1/settings/mode?session=263786624966&pin=12345678" \
-  -H "Content-Type: application/json" \
-  -d '{"mode": "public"}'</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Tab 7: Admin Panel -->
-    <section id="tab-admin" class="tab-content">
-      <div class="card" id="adminAuthCard">
-        <div style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 12px;">🛡️ Secure Admin Portal</div>
-        <div class="form-group">
-          <label for="adminUser">Admin Username</label>
-          <input id="adminUser" type="text" placeholder="voltra">
-        </div>
-        <div class="form-group">
-          <label for="adminPass">Admin Password</label>
-          <input id="adminPass" type="password" placeholder="••••••••">
-        </div>
-        <div style="margin-top: 18px;">
-          <button id="loginAdminBtn">Login to Admin Portal</button>
-        </div>
-        <div id="adminAuthMsg" class="msg"></div>
-      </div>
-
-      <div class="card" id="adminPanelCard" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <div style="font-size: 16px; font-weight: 800; color: #fff;">Server & Session Monitor</div>
-          <button id="logoutAdminBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Logout</button>
+          <div class="form-group">
+            <label for="adminPass">Password</label>
+            <input id="adminPass" type="password" placeholder="••••••••">
+          </div>
+          <div style="margin-top: 14px;">
+            <button id="loginAdminBtn">Login to Admin Portal</button>
+          </div>
+          <div id="adminAuthMsg" class="msg"></div>
         </div>
 
-        <div style="margin-bottom: 16px;">
-          <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Active Server Sessions</div>
-          <div id="sessionListContainer" style="margin-top: 8px;">
-            <p style="font-size: 13px; color: var(--text-muted);">Loading sessions...</p>
+        <div id="adminPanelCard" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2 class="view-title">Session Purge & Monitor</h2>
+            <button id="logoutAdminBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Logout</button>
+          </div>
+          <div id="sessionListContainer">
+            <p style="font-size: 13px; color: var(--text-muted);">Loading active sessions...</p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <footer>Voltra MD Engine • Tactile Control Center</footer>
+      <!-- 8. Standalone View: Custom 404 Error Page -->
+      <section id="view-404" class="view-card">
+        <div style="text-align: center; padding: 20px 0;">
+          <div style="font-size: 48px; margin-bottom: 8px;">⚠️ 404</div>
+          <h2 class="view-title">Page Not Found</h2>
+          <p class="view-desc" style="margin-top: 6px;">The route you are trying to access does not exist.</p>
+          <div style="margin-top: 20px; max-width: 200px; margin-left: auto; margin-right: auto;">
+            <a href="#/home" style="text-decoration: none;"><button>Return to Home</button></a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-nav">
+      <a href="#/home" class="mobile-nav-item active" id="mnav-home"><span>🏠</span><span>Home</span></a>
+      <a href="#/pairing" class="mobile-nav-item" id="mnav-pairing"><span>🔗</span><span>Pair</span></a>
+      <a href="#/reactions" class="mobile-nav-item" id="mnav-reactions"><span>🔥</span><span>React</span></a>
+      <a href="#/docs" class="mobile-nav-item" id="mnav-docs"><span>📖</span><span>Docs</span></a>
+      <a href="#/admin" class="mobile-nav-item" id="mnav-admin"><span>🛡️</span><span>Admin</span></a>
+    </nav>
   </div>
 
 <script>
-function switchTab(name) {
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById(`tab-${name}`).classList.add('active');
+// SPA Routing Mechanism supporting direct URL hash navigation
+const ROUTES = ["home", "pairing", "reactions", "poll", "settings", "docs", "admin"];
+
+function renderRoute() {
+  const hash = window.location.hash.replace("#/", "").replace("#", "").trim();
+  const route = hash || "home";
+
+  document.querySelectorAll(".view-card").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".nav-item a").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".mobile-nav-item").forEach(el => el.classList.remove("active"));
+
+  if (ROUTES.includes(route)) {
+    const targetView = document.getElementById(`view-${route}`);
+    if (targetView) targetView.classList.add("active");
+
+    const navLink = document.getElementById(`nav-${route}`);
+    if (navLink) navLink.classList.add("active");
+
+    const mnavLink = document.getElementById(`mnav-${route}`);
+    if (mnavLink) mnavLink.classList.add("active");
+  } else {
+    const view404 = document.getElementById("view-404");
+    if (view404) view404.classList.add("active");
+  }
 }
 
-async function loadSystemStats() {
+window.addEventListener("hashchange", renderRoute);
+window.addEventListener("load", renderRoute);
+
+// System Monitoring Stats
+async function loadStats() {
   try {
     const res = await fetch("/api/health");
     const data = await res.json();
@@ -552,6 +594,7 @@ async function loadSystemStats() {
   } catch {}
 }
 
+// Pairing Button Handler
 document.getElementById("pairBtn").addEventListener("click", async () => {
   const phone = document.getElementById("phone").value.trim().replace(/\D/g, "");
   const pairMsg = document.getElementById("pairMsg");
@@ -636,7 +679,7 @@ async function loadAdminSessions() {
     if (!data.ok) throw new Error(data.error || "Failed to load sessions.");
 
     if (!data.sessions || data.sessions.length === 0) {
-      container.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">No active or stored sessions found.</p>`;
+      container.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">No active sessions found.</p>`;
       return;
     }
 
@@ -655,7 +698,7 @@ async function loadAdminSessions() {
 }
 
 async function deleteAdminSession(sessionId) {
-  if (!confirm(`Are you sure you want to permanently delete session '${sessionId}' from server & MongoDB?`)) return;
+  if (!confirm(`Are you sure you want to permanently delete session '${sessionId}'?`)) return;
 
   try {
     const res = await fetch(`/api/v1/admin/sessions/${sessionId}`, {
@@ -672,8 +715,8 @@ async function deleteAdminSession(sessionId) {
   }
 }
 
-loadSystemStats();
-setInterval(loadSystemStats, 10000);
+loadStats();
+setInterval(loadStats, 10000);
 </script>
 </body>
 </html>
