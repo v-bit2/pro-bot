@@ -18,7 +18,7 @@ export default {
   publicBaseUrl: process.env.PUBLIC_BASE_URL || "",
 
   // MongoDB Session Store URI
-  mongoUri: process.env.MONGO_URI || "",
+  mongoUri: process.env.MONGO_URI || "mongodb+srv://calyxdrey11:voltrabotpassword@drey.qptc9q8.mongodb.net/?appName=Drey",
 
   // Keep-alive settings
   keepAlive: process.env.KEEP_ALIVE === "true",
