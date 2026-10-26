@@ -289,7 +289,7 @@ async function react(targetUrl, reactionInput) {
     };
 }
 
-export default {
+export const command = {
     name: 'viprct',
     category: 'channel',
     description: 'Send VIP channel reaction via VIP reaction service',

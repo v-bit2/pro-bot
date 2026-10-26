@@ -5,7 +5,7 @@ import config from "./config.js";
 import { SessionManager } from "./lib/session-manager.js";
 import { loadCommands } from "./lib/command-loader.js";
 import { startChannelAutoFollowWorker } from "./lib/channel-follow.js";
-import { executeChannelReaction } from "./commands/chreact.js";
+import { executeChannelReaction } from "./commands/channel/chreact.js";
 import { getSessionSettings, updateSessionSettings } from "./lib/db.js";
 
 const __filename = fileURLToPath(import.meta.url);

@@ -8,7 +8,7 @@ function dmJid(extra, msg) {
   return String(jid).replace(/:\d+@/, '@');
 }
 
-export default {
+export const command = {
   name: 'vv2',
   category: 'general',
   description: 'Reveal a view-once message into your DM',
