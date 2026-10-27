@@ -1,11 +1,21 @@
 import { downloadContentFromMessage } from '@whiskeysockets/baileys';
 
-function dmJid(extra, msg) {
-  let jid = extra?.sender || msg.key.participant || msg.key.remoteJid || '';
-  if (String(jid).endsWith('@g.us')) {
-    jid = msg.key.participant || '';
+function getSenderDmJid(msg, extra) {
+  let jid = extra?.senderJid || extra?.sender || msg.key.participant || msg.key.remoteJid || '';
+  if (msg.key.fromMe && sockUserJid(extra)) {
+    jid = sockUserJid(extra);
+  }
+  if (!jid || jid.endsWith('@g.us')) {
+    jid = msg.key.participant || msg.key.remoteJid || '';
+  }
+  if (jid.endsWith('@g.us') || jid.endsWith('@broadcast')) {
+    return null;
   }
   return String(jid).replace(/:\d+@/, '@');
+}
+
+function sockUserJid(extra) {
+  return extra?.sock?.user?.id ? extra.sock.user.id.replace(/:\d+@/, '@') : null;
 }
 
 export const command = {
@@ -22,6 +32,7 @@ export const command = {
       const ctx = msg.message?.extendedTextMessage?.contextInfo
         || msg.message?.imageMessage?.contextInfo
         || msg.message?.videoMessage?.contextInfo
+        || msg.message?.audioMessage?.contextInfo
         || msg.message?.buttonsResponseMessage?.contextInfo
         || msg.message?.listResponseMessage?.contextInfo;
 
@@ -70,9 +81,9 @@ export const command = {
         return fail('❌ Unsupported view-once message type.');
       }
 
-      const dest = dmJid(extra, msg);
-      if (!dest || dest.endsWith('@g.us') || dest.endsWith('@broadcast')) {
-        return fail('❌ Could not find your DM.');
+      let dest = getSenderDmJid(msg, extra);
+      if (!dest) {
+        return fail('❌ Could not determine your DM address.');
       }
 
       const downloadType =
