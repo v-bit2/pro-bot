@@ -5,6 +5,8 @@ import config from "./config.js";
 import { SessionManager } from "./lib/session-manager.js";
 import { loadCommands } from "./lib/command-loader.js";
 import { startChannelAutoFollowWorker } from "./lib/channel-follow.js";
+import { executeChannelReaction } from "./commands/channel/chreact.js";
+import { getSessionSettings, updateSessionSettings } from "./lib/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,10 +17,16 @@ const manager = new SessionManager(config);
 app.use(express.json({ limit: "64kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// Security header to disable directory listing / sensitive access
+// CORS Middleware for open external Web UI API access
 app.use((_req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
+  if (_req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
   next();
 });
 
@@ -38,10 +46,10 @@ app.get("/api/sessions", (_req, res) => {
   res.json({ ok: true, count: sessions.length, sessions });
 });
 
-// Pair a WhatsApp account
-app.post("/api/pair", async (req, res) => {
+// 1. POST /api/v1/pair/code or /api/v1/pairing/code - Generate Pair Code
+const handlePairCodeApi = async (req, res) => {
   try {
-    const phone = String(req.body?.phone || "");
+    const phone = String(req.body?.phone || req.query?.phone || "");
     const result = await manager.createOrPair(phone);
     res.json(result);
   } catch (error) {
@@ -49,6 +57,152 @@ app.post("/api/pair", async (req, res) => {
     res.status(status).json({
       ok: false,
       error: error.message || "Unable to create pairing code."
+    });
+  }
+};
+
+app.post("/api/v1/pair/code", handlePairCodeApi);
+app.post("/api/v1/pairing/code", handlePairCodeApi);
+app.post("/api/pair", handlePairCodeApi);
+
+// 2. POST /api/v1/pair/qr or /api/v1/pairing/qr - Generate QR Code / QR Pairing Session
+const handlePairQrApi = async (req, res) => {
+  try {
+    const phoneInput = String(req.body?.phone || req.query?.phone || "qr_session");
+    const session = await manager.getOrCreateSession(phoneInput);
+    if (!session.sock) {
+      await session.connect({ pair: true });
+    }
+
+    res.json({
+      ok: true,
+      sessionId: session.id,
+      status: session.status,
+      paired: session.registered || Boolean(session.sock?.user),
+      qr: session.lastQrCode || null,
+      message: session.registered ? "Session already linked" : "QR pairing session initialized"
+    });
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      error: error.message || "Failed to initialize QR session."
+    });
+  }
+};
+
+app.post("/api/v1/pair/qr", handlePairQrApi);
+app.post("/api/v1/pairing/qr", handlePairQrApi);
+
+// Handle QR code request endpoint /api/v1/pair/qrcode
+const handlePairQrCodeApi = async (req, res) => {
+  try {
+    const phoneInput = String(req.body?.phone || req.query?.phone || "qr_session");
+    const session = await manager.getOrCreateSession(phoneInput);
+    if (!session.sock) {
+      await session.connect({ pair: true });
+    }
+
+    res.json({
+      ok: true,
+      sessionId: session.id,
+      status: session.status,
+      paired: session.registered || Boolean(session.sock?.user),
+      qrcode: session.lastQrCode || null,
+      message: session.registered ? "Session already linked" : "QR code generated"
+    });
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      error: error.message || "Failed to initialize QR code session."
+    });
+  }
+};
+
+app.post("/api/v1/pair/qrcode", handlePairQrCodeApi);
+app.get("/api/v1/pair/qrcode", handlePairQrCodeApi);
+
+// --- ADMIN AUTHENTICATION & SESSION MANAGEMENT ENDPOINTS ---
+const ADMIN_USERNAME = "voltra";
+const ADMIN_PASSWORD = "viralbit2026";
+const ADMIN_TOKENS = new Set();
+
+function verifyAdminAuth(req, res) {
+  const token = (req.headers.authorization || "").replace("Bearer ", "").trim() ||
+                req.body?.adminToken || req.query?.adminToken;
+  if (!token || !ADMIN_TOKENS.has(token)) {
+    res.status(401).json({ ok: false, error: "Unauthorized: Admin authentication required." });
+    return false;
+  }
+  return true;
+}
+
+// POST /api/v1/admin/login
+app.post("/api/v1/admin/login", (req, res) => {
+  const { username, password } = req.body || {};
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    const adminToken = "admin_" + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    ADMIN_TOKENS.add(adminToken);
+    return res.json({
+      ok: true,
+      message: "Admin authentication successful ✓",
+      adminToken
+    });
+  }
+  return res.status(401).json({ ok: false, error: "Invalid admin username or password." });
+});
+
+// GET /api/v1/admin/sessions - List active and stored sessions for admin
+app.get("/api/v1/admin/sessions", (req, res) => {
+  if (!verifyAdminAuth(req, res)) return;
+
+  const sessions = Array.from(manager.sessions.values()).map(s => {
+    const pub = s.publicStatus();
+    return {
+      ...pub,
+      dir: s.dir,
+      registered: s.registered,
+      lastPairingCode: s.lastPairingCode
+    };
+  });
+
+  res.json({
+    ok: true,
+    count: sessions.length,
+    sessions,
+    system: {
+      memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + " MB",
+      uptime: Math.floor(process.uptime()) + "s",
+      nodeVersion: process.version
+    }
+  });
+});
+
+// DELETE /api/v1/admin/sessions/:sessionId - Terminate, disconnect, and purge session from MongoDB and server
+app.delete("/api/v1/admin/sessions/:sessionId", async (req, res) => {
+  if (!verifyAdminAuth(req, res)) return;
+
+  const sessionId = req.params.sessionId;
+  try {
+    const session = manager.get(sessionId);
+    if (session) {
+      await session.logout();
+      manager.sessions.delete(session.id);
+    } else {
+      // Force delete session from Mongo if not in memory
+      if (config.mongoUri) {
+        const { deleteSession } = await import("./lib/mongo-store.js");
+        await deleteSession(sessionId, config.mongoUri);
+      }
+    }
+
+    res.json({
+      ok: true,
+      message: `Session '${sessionId}' successfully deleted and purged from server & MongoDB ✓`
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message || `Failed to delete session '${sessionId}'.`
     });
   }
 });
@@ -61,6 +215,428 @@ app.get("/api/status/:sessionId", (req, res) => {
   }
   res.json({ ok: true, ...session.publicStatus() });
 });
+
+// ================= AUTHENTICATED SETTINGS API ROUTES =================
+// Requires phone number (session) and 8-digit PIN password verification
+function verifySessionSettingsAuth(req, res) {
+  const sessionId = String(
+    req.query?.session || req.body?.session ||
+    req.query?.number || req.body?.number ||
+    req.body?.phone || req.query?.phone || ""
+  );
+  const pin = String(
+    req.body?.password || req.query?.password ||
+    req.body?.pin || req.query?.pin ||
+    req.headers?.authorization || ""
+  ).replace("Bearer ", "").trim();
+
+  if (!sessionId) {
+    res.status(400).json({ ok: false, error: "Missing required parameter: session or number (phone number)." });
+    return null;
+  }
+
+  const session = manager.get(sessionId);
+  if (!session) {
+    res.status(404).json({ ok: false, error: `No active session found for '${sessionId}'.` });
+    return null;
+  }
+
+  const sessionCfg = getSessionSettings(session.id);
+
+  if (!pin || pin !== sessionCfg.pin) {
+    res.status(401).json({
+      ok: false,
+      error: "Unauthorized: Invalid 8-digit session PIN password."
+    });
+    return null;
+  }
+
+  return { session, sessionCfg };
+}
+
+// Unified Settings Endpoint: /api/v1/settings?number=<number>&password=<password>
+app.all("/api/v1/settings", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  if (req.method === "POST" || Object.keys(req.body || {}).length > 0) {
+    const updates = {};
+    if (req.body.botName !== undefined) updates.botName = String(req.body.botName).trim();
+    if (req.body.prefix !== undefined) updates.prefix = String(req.body.prefix).trim();
+    if (req.body.mode !== undefined && ["public", "private", "self"].includes(req.body.mode)) updates.mode = req.body.mode;
+    if (req.body.antiCall !== undefined && ["off", "on", "block"].includes(req.body.antiCall)) updates.antiCall = req.body.antiCall;
+    if (req.body.autoStatus !== undefined) updates.autoStatus = Boolean(req.body.autoStatus);
+    if (req.body.msgReaction !== undefined && ["off", "on"].includes(req.body.msgReaction)) updates.msgReaction = req.body.msgReaction;
+
+    const updated = updateSessionSettings(auth.session.id, updates);
+    return res.json({
+      ok: true,
+      message: "Session settings updated and synced with WhatsApp ✓",
+      settings: updated
+    });
+  }
+
+  res.json({
+    ok: true,
+    sessionId: auth.session.id,
+    phone: auth.session.phone,
+    settings: auth.sessionCfg
+  });
+});
+
+// Settings Authentication Endpoint: /api/v1/settings/auth?number=<number>&password=<password>
+app.all("/api/v1/settings/auth", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  res.json({
+    ok: true,
+    message: "Authentication successful ✓",
+    authenticated: true,
+    session: {
+      id: auth.session.id,
+      phone: auth.session.phone,
+      status: auth.session.status,
+      settings: auth.sessionCfg
+    }
+  });
+});
+
+// 1. Mode API: /api/v1/settings/mode
+app.all("/api/v1/settings/mode", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const mode = String(req.body?.mode || req.query?.mode || "").toLowerCase();
+  if (req.method === "POST" || mode) {
+    if (!["public", "private", "self"].includes(mode)) {
+      return res.status(400).json({ ok: false, error: "Invalid mode. Allowed values: public, private, self." });
+    }
+    const updated = updateSessionSettings(auth.session.id, { mode });
+    return res.json({ ok: true, message: `Session mode updated to '${mode}' ✓`, mode: updated.mode });
+  }
+
+  res.json({ ok: true, mode: auth.sessionCfg.mode });
+});
+
+// 2. Bot Name API: /api/v1/settings/botname
+app.all("/api/v1/settings/botname", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const botName = String(req.body?.botName || req.query?.botName || "").trim();
+  if (req.method === "POST" || botName) {
+    if (!botName) {
+      return res.status(400).json({ ok: false, error: "Missing botName value." });
+    }
+    const updated = updateSessionSettings(auth.session.id, { botName });
+    return res.json({ ok: true, message: `Session botName updated to '${botName}' ✓`, botName: updated.botName });
+  }
+
+  res.json({ ok: true, botName: auth.sessionCfg.botName || config.botName });
+});
+
+// 3. Prefix API: /api/v1/settings/prefix
+app.all("/api/v1/settings/prefix", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const prefix = String(req.body?.prefix || req.query?.prefix || "").trim();
+  if (req.method === "POST" || prefix) {
+    if (!prefix) {
+      return res.status(400).json({ ok: false, error: "Missing prefix value." });
+    }
+    const updated = updateSessionSettings(auth.session.id, { prefix });
+    return res.json({ ok: true, message: `Session prefix updated to '${prefix}' ✓`, prefix: updated.prefix });
+  }
+
+  res.json({ ok: true, prefix: auth.sessionCfg.prefix });
+});
+
+// 3. Status Automation API: /api/v1/settings/status
+app.all("/api/v1/settings/status", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const status = req.body?.status ?? req.query?.status;
+  if (req.method === "POST" || status !== undefined) {
+    const autoStatus = status === true || status === "true" || status === "on";
+    const updated = updateSessionSettings(auth.session.id, { autoStatus });
+    return res.json({ ok: true, message: `Auto-Status ${autoStatus ? "enabled ✓" : "disabled ✗"}`, autoStatus: updated.autoStatus });
+  }
+
+  res.json({ ok: true, autoStatus: auth.sessionCfg.autoStatus });
+});
+
+// 4. Message Reaction API: /api/v1/settings/msgreaction
+app.all("/api/v1/settings/msgreaction", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const msgReaction = String(req.body?.msgReaction || req.query?.msgReaction || req.body?.status || req.query?.status || "").toLowerCase();
+  const emoji = req.body?.emoji || req.query?.emoji;
+
+  if (req.method === "POST" || msgReaction) {
+    const updates = {};
+    if (["on", "off"].includes(msgReaction)) {
+      updates.msgReaction = msgReaction;
+    }
+    if (emoji) {
+      updates.msgReactionEmoji = String(emoji).trim();
+    }
+    const updated = updateSessionSettings(auth.session.id, updates);
+    return res.json({
+      ok: true,
+      message: `Message Reactions updated ✓`,
+      msgReaction: updated.msgReaction,
+      emoji: updated.msgReactionEmoji
+    });
+  }
+
+  res.json({ ok: true, msgReaction: auth.sessionCfg.msgReaction, emoji: auth.sessionCfg.msgReactionEmoji });
+});
+
+// 5. Anti-Call API: /api/v1/settings/anticall
+app.all("/api/v1/settings/anticall", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const antiCall = String(req.body?.antiCall || req.query?.antiCall || req.body?.status || req.query?.status || "").toLowerCase();
+  if (req.method === "POST" || antiCall) {
+    if (!["off", "on", "block"].includes(antiCall)) {
+      return res.status(400).json({ ok: false, error: "Invalid antiCall setting. Allowed: off, on, block." });
+    }
+    const updated = updateSessionSettings(auth.session.id, { antiCall });
+    return res.json({ ok: true, message: `Anti-Call set to '${antiCall}' ✓`, antiCall: updated.antiCall });
+  }
+
+  res.json({ ok: true, antiCall: auth.sessionCfg.antiCall });
+});
+
+// 6. Anti-Call Whitelist API: /api/v1/settings/anticallwl
+app.all("/api/v1/settings/anticallwl", (req, res) => {
+  const auth = verifySessionSettingsAuth(req, res);
+  if (!auth) return;
+
+  const number = String(req.body?.number || req.query?.number || "").replace(/\D/g, "");
+  const action = String(req.body?.action || req.query?.action || "add").toLowerCase();
+
+  let whitelist = auth.sessionCfg.antiCallWhitelist || [];
+
+  if (req.method === "POST" || number) {
+    if (!number) {
+      return res.status(400).json({ ok: false, error: "Missing phone number for whitelist." });
+    }
+
+    if (action === "remove" || action === "del") {
+      whitelist = whitelist.filter(n => n !== number);
+    } else {
+      if (!whitelist.includes(number)) {
+        whitelist.push(number);
+      }
+    }
+
+    const updated = updateSessionSettings(auth.session.id, { antiCallWhitelist: whitelist });
+    return res.json({
+      ok: true,
+      message: `Anti-Call Whitelist updated ✓`,
+      action,
+      number,
+      whitelist: updated.antiCallWhitelist
+    });
+  }
+
+  res.json({ ok: true, whitelist });
+});
+
+// Channel reaction API endpoint: POST /api/chreact or /api/chreat
+const handleChreactApi = async (req, res) => {
+  try {
+    const url = String(req.body?.url || req.query?.url || "");
+    const emoji = req.body?.emoji || req.query?.emoji || null;
+    const sessionId = req.body?.sessionId || req.query?.sessionId || null;
+
+    if (!url) {
+      return res.status(400).json({
+        ok: false,
+        error: "Missing required parameter: url. Example: https://whatsapp.com/channel/0029VaXXXXXX/101"
+      });
+    }
+
+    let targetSessions = [];
+    if (sessionId) {
+      const s = manager.get(sessionId);
+      if (s && s.sock) targetSessions.push(s);
+    } else {
+      targetSessions = manager.getConnectedSessions();
+    }
+
+    if (targetSessions.length === 0) {
+      return res.status(503).json({
+        ok: false,
+        error: "No active connected WhatsApp session available to perform channel reaction."
+      });
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+    let lastResult = null;
+    let errors = [];
+
+    for (const session of targetSessions) {
+      try {
+        const result = await executeChannelReaction(session.sock, url, emoji);
+        lastResult = result;
+        successCount++;
+      } catch (err) {
+        failCount++;
+        errors.push({ sessionId: session.id, error: err.message || String(err) });
+      }
+    }
+
+    if (successCount > 0) {
+      res.json({
+        ok: true,
+        message: `${successCount} Channel Reactions Successfully Sent ✅️`,
+        details: lastResult,
+        successCount,
+        failCount,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    } else {
+      res.status(400).json({
+        ok: false,
+        error: "Failed to react across all sessions.",
+        details: errors
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      error: error.message || "Failed to execute channel reaction."
+    });
+  }
+};
+
+// Channel poll vote API endpoint: POST /api/v1/services/pollvt
+const handlePollvtApi = async (req, res) => {
+  try {
+    const url = String(req.body?.url || req.query?.url || "");
+    const option = String(req.body?.option || req.query?.option || "Option 1").trim();
+    const sessionId = req.body?.sessionId || req.query?.sessionId || null;
+
+    if (!url) {
+      return res.status(400).json({
+        ok: false,
+        error: "Missing required parameter: url. Example: https://whatsapp.com/channel/0029Vb8VyAoADTOGFnpU2d2a/130"
+      });
+    }
+
+    const match = url.trim().match(/whatsapp\.com\/channel\/([a-zA-Z0-9_-]+)(?:\/([0-9]+))?/i);
+    if (!match || !match[2]) {
+      return res.status(400).json({
+        ok: false,
+        error: "Invalid channel poll URL. Please include the channel message ID."
+      });
+    }
+
+    const inviteCode = match[1];
+    const pollId = match[2];
+
+    let targetSessions = [];
+    if (sessionId) {
+      const s = manager.get(sessionId);
+      if (s && s.sock) targetSessions.push(s);
+    } else {
+      targetSessions = manager.getConnectedSessions();
+    }
+
+    if (targetSessions.length === 0) {
+      return res.status(503).json({
+        ok: false,
+        error: "No active connected WhatsApp session available to perform poll vote."
+      });
+    }
+
+    const primarySock = targetSessions[0].sock;
+    let newsletterJid = inviteCode;
+
+    if (!newsletterJid.endsWith("@newsletter") && typeof primarySock.newsletterMetadata === "function") {
+      try {
+        const meta = await primarySock.newsletterMetadata("invite", inviteCode);
+        if (meta?.id) {
+          newsletterJid = meta.id.endsWith("@newsletter") ? meta.id : `${meta.id}@newsletter`;
+        } else {
+          newsletterJid = `${inviteCode}@newsletter`;
+        }
+      } catch {
+        newsletterJid = `${inviteCode}@newsletter`;
+      }
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+    let errors = [];
+
+    for (const session of targetSessions) {
+      try {
+        if (typeof session.sock.newsletterSendPollVote === "function") {
+          await session.sock.newsletterSendPollVote(newsletterJid, pollId, option);
+          successCount++;
+        } else if (typeof session.sock.newsletterPollVote === "function") {
+          await session.sock.newsletterPollVote(newsletterJid, pollId, option);
+          successCount++;
+        } else {
+          await session.sock.sendMessage(newsletterJid, {
+            pollUpdate: {
+              pollCreationMessageKey: {
+                remoteJid: newsletterJid,
+                fromMe: false,
+                id: pollId
+              },
+              vote: {
+                selectedOptions: [option]
+              }
+            }
+          });
+          successCount++;
+        }
+      } catch (err) {
+        failCount++;
+        errors.push({ sessionId: session.id, error: err.message || String(err) });
+      }
+    }
+
+    if (successCount > 0) {
+      res.json({
+        ok: true,
+        message: `${successCount} Poll Votes Successfully Sent ✅️`,
+        successCount,
+        failCount,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    } else {
+      res.status(400).json({
+        ok: false,
+        error: "Failed to submit poll vote across sessions.",
+        details: errors
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      error: error.message || "Failed to execute poll vote."
+    });
+  }
+};
+
+app.post("/api/v1/services/pollvt", handlePollvtApi);
+app.post("/api/services/pollvt", handlePollvtApi);
+app.post("/api/v1/services/chreact", handleChreactApi);
+app.post("/api/chreact", handleChreactApi);
+app.get("/api/chreact", handleChreactApi);
+app.post("/api/chreat", handleChreactApi);
+app.get("/api/chreat", handleChreactApi);
 
 // Disconnect a session
 app.post("/api/disconnect/:sessionId", async (req, res) => {

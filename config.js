@@ -1,17 +1,24 @@
-const dbPass = process.env.DB_PASSWORD || process.env.MONGO_PASSWORD || "";
-const defaultMongo = dbPass ? `mongodb+srv://calyxdrey11:${dbPass}@drey.qptc9q8.mongodb.net/?appName=Drey` : "";
-
 export default {
   name: "Voltra Mini",
+  botName: process.env.BOT_NAME || "Voltra MD",
+  newsletterName: process.env.NEWSLETTER_NAME || "VOLTRA MD",
+  newsletterJid: process.env.NEWSLETTER_JID || "120363428077325156@newsletter",
   owner: process.env.OWNER_NUMBER || "263786624966",
   prefix: process.env.PREFIX || ".",
+  mode: process.env.BOT_MODE || "public",
+  antiCall: process.env.ANTI_CALL || "off",
+  msgReaction: process.env.MSG_REACTION || "off",
+  autoStatus: process.env.AUTO_STATUS === "true",
+  autoRead: process.env.AUTO_READ === "true",
+  autoTyping: process.env.AUTO_TYPING === "true",
+  autoReact: process.env.AUTO_REACT === "true",
   port: Number(process.env.PORT || 3000),
-  maxSessions: Number(process.env.MAX_SESSIONS || 10),
+  maxSessions: Number(process.env.MAX_SESSIONS || 1000),
   sessionDir: process.env.SESSION_DIR || "./sessions",
   publicBaseUrl: process.env.PUBLIC_BASE_URL || "",
 
   // MongoDB Session Store URI
-  mongoUri: process.env.MONGO_URI || defaultMongo,
+  mongoUri: process.env.MONGO_URI || "mongodb+srv://calyxdrey11:voltrabotpassword@drey.qptc9q8.mongodb.net/?appName=Drey",
 
   // Keep-alive settings
   keepAlive: process.env.KEEP_ALIVE === "true",

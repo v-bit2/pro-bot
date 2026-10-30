@@ -3,436 +3,1015 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>⚡ Voltra Mini — Control Center</title>
+  <title>⚡ Voltra MD — Control Center</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #0b0e14;
-      --card-bg: #131722;
-      --card-border: #1f2636;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --accent: #7c5cff;
-      --accent-hover: #6943ff;
-      --accent-glow: rgba(124, 92, 255, 0.25);
+      --bg: #07080c;
+      --panel-bg: linear-gradient(145deg, #111522, #0b0e17);
+      --sidebar-bg: #0c0f18;
+      --panel-border: #1e2638;
+      --text-main: #e2e8f0;
+      --text-muted: #7f8ea3;
+      --accent: #2563eb;
+      --accent-grad: linear-gradient(145deg, #2563eb, #1d4ed8);
+      --accent-shadow: rgba(37, 99, 235, 0.4);
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --input-bg: #0a0d14;
+      --input-well: inset 2px 2px 4px #050608, inset -2px -2px 4px #151a26;
+      --card-shadow: 8px 8px 16px #040508, -8px -8px 16px #121622;
+      --btn-shadow: 4px 4px 8px #040508, -4px -4px 8px #151b2a;
+      --btn-active: inset 2px 2px 4px #040508, inset -2px -2px 4px #151b2a;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 30px 16px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at 50% 0%, rgba(124, 92, 255, 0.15), transparent 50%), var(--bg);
+      background: var(--bg);
       color: var(--text-main);
     }
-    .container {
-      width: min(520px, 100%);
+
+    .app-layout {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Top Navbar */
+    .top-navbar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: #0b0e17;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 0 14px;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+    }
+    .hamburger-btn {
+      background: transparent;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding: 6px;
+      width: auto;
+      box-shadow: none;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--panel-border);
+      padding: 18px 12px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
-    }
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      gap: 18px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+      z-index: 150;
     }
     .brand-header {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--panel-border);
     }
-    .bot-avatar {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
       object-fit: cover;
-      border: 2px solid var(--accent);
-      box-shadow: 0 0 15px var(--accent-glow);
+      border: 2px solid #2563eb;
     }
-    .bot-avatar-fallback {
+    .brand-title h2 { font-size: 16px; font-weight: 800; color: #fff; }
+    .brand-title p { font-size: 10px; color: var(--text-muted); }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      list-style: none;
+    }
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .nav-item a:hover, .nav-item a.active {
+      color: #fff;
+      background: var(--panel-bg);
+      box-shadow: 3px 3px 6px #040508, -3px -3px 6px #161b2a;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 24px 20px 60px 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .view-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: var(--card-shadow);
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .view-card.active { display: flex; }
+
+    .view-title { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+    .view-desc { font-size: 12px; color: var(--text-muted); }
+
+    /* Compact Hero & Feature Table */
+    .hero-banner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #090b12;
+      padding: 14px;
+      border-radius: 14px;
+      box-shadow: var(--input-well);
+    }
+    .hero-avatar {
       width: 56px;
       height: 56px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, var(--accent), #38bdf8);
-      display: grid;
-      place-items: center;
-      font-size: 28px;
-      box-shadow: 0 0 15px var(--accent-glow);
+      border-radius: 14px;
+      object-fit: cover;
+      border: 2px solid #2563eb;
     }
-    .title h1 { font-size: 22px; font-weight: 700; color: #fff; }
-    .title p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .hero-text h3 { font-size: 16px; font-weight: 800; color: #fff; }
+    .hero-text p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 20px;
+    .quick-nav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .quick-nav-btn {
+      padding: 10px;
+      font-size: 11px;
+      border-radius: 10px;
+    }
+
+    .feature-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
       font-size: 12px;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--card-border);
     }
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--text-muted);
+    .feature-table th, .feature-table td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--panel-border);
     }
-    .badge.connected .badge-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
-    .badge.pairing .badge-dot { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
-    .badge.disconnected .badge-dot { background: var(--danger); }
+    .feature-table th { color: #60a5fa; font-weight: 700; text-transform: uppercase; font-size: 10px; }
 
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-top: 16px;
+      gap: 6px;
+      margin-top: 8px;
     }
-    label { font-size: 13px; font-weight: 500; color: #cbd5e1; }
-    input {
+    label { font-size: 11px; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select {
       width: 100%;
-      padding: 14px 16px;
-      border-radius: 12px;
-      border: 1px solid var(--card-border);
-      background: var(--input-bg);
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #1a2233;
+      background: #07090e;
       color: var(--text-main);
-      font-size: 16px;
+      font-size: 13px;
       outline: none;
+      box-shadow: var(--input-well);
       transition: border-color 0.2s;
     }
-    input:focus { border-color: var(--accent); }
+    input:focus, select:focus { border-color: var(--accent); }
 
     button {
       width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      border: none;
-      background: var(--accent);
+      padding: 11px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--accent-grad);
       color: #fff;
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      transition: background 0.2s, opacity 0.2s;
+      gap: 6px;
+      box-shadow: var(--btn-shadow);
+      transition: transform 0.1s, box-shadow 0.1s;
     }
-    button:hover { background: var(--accent-hover); }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button:active {
+      box-shadow: var(--btn-active);
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(145deg, #182030, #101622);
+      color: #e2e8f0;
+      box-shadow: var(--btn-shadow);
+    }
+    .btn-danger {
+      background: linear-gradient(145deg, #dc2626, #b91c1c);
+      color: #fff;
+      box-shadow: var(--btn-shadow);
+    }
+
+    .code-display {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #60a5fa;
+      margin: 10px 0;
+      padding: 12px;
+      background: #050608;
+      border-radius: 12px;
+      box-shadow: var(--input-well);
+      text-align: center;
+    }
+
+    .msg { font-size: 12px; text-align: center; font-weight: 600; margin-top: 8px; }
+    .msg.error { color: var(--danger); }
+    .msg.success { color: var(--success); }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .metric-card {
+      background: #07090e;
+      padding: 14px;
+      border-radius: 14px;
+      box-shadow: var(--input-well);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .metric-val { font-size: 20px; font-weight: 800; color: #fff; }
+    .metric-lbl { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+
+    /* API Docs */
+    .api-card {
+      background: #07090e;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 8px;
+      box-shadow: var(--input-well);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .api-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .method-tag {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .method-tag.post { background: #2563eb; color: #fff; }
+    .method-tag.get { background: #10b981; color: #fff; }
+    .method-tag.delete { background: #ef4444; color: #fff; }
+    .api-path { font-family: monospace; font-size: 12px; font-weight: 700; color: #60a5fa; }
+    .code-block {
+      background: #040507;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #93c5fd;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .session-item {
+      background: #07090e;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+      box-shadow: var(--input-well);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
     /* Loading Spinner */
     .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: none;
+      border-top-color: #fff;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
 
-    .result {
+    .sidebar-overlay {
       display: none;
-      margin-top: 20px;
-      padding: 20px;
-      border-radius: 14px;
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      text-align: center;
-    }
-    .code-display {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: 5px;
-      color: #38bdf8;
-      margin: 12px 0;
-      text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
-    }
-    .btn-secondary {
-      background: #1e2538;
-      border: 1px solid var(--card-border);
-      color: #e2e8f0;
-      margin-top: 10px;
-    }
-    .btn-secondary:hover { background: #2a344d; }
-
-    .instructions {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-top: 10px;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 120;
     }
 
-    .msg { font-size: 13px; margin-top: 12px; text-align: center; }
-    .msg.error { color: var(--danger); }
-    .msg.success { color: var(--success); }
-
-    .sessions-summary {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 18px;
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-    }
-    .sessions-count {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    /* Documentation Section */
-    .doc-section {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .doc-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 10px;
-    }
-    .doc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-    }
-    .doc-card {
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 14px;
-    }
-    .doc-card h4 {
-      font-size: 13px;
-      font-weight: 600;
-      color: #38bdf8;
-      margin-bottom: 6px;
-    }
-    .doc-card p {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-    .cmd-badge {
-      display: inline-block;
-      background: rgba(124, 92, 255, 0.15);
-      color: var(--accent);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 11px;
-      margin-top: 4px;
-    }
-
-    footer {
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 10px;
+    @media (max-width: 768px) {
+      .top-navbar { display: flex; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay.active {
+        display: block;
+      }
+      .main-content { padding: 70px 14px 30px 14px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <main class="card">
+  <div class="app-layout">
+    <!-- Top Mobile Header -->
+    <header class="top-navbar">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <img src="/assets/voltra-mini.jpg" alt="Voltra" style="width: 28px; height: 28px; border-radius: 8px;">
+        <span style="font-weight: 800; font-size: 15px; color: #fff;">Voltra MD</span>
+      </div>
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle Navigation">
+        <i data-lucide="menu"></i>
+      </button>
+    </header>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="appSidebar">
       <div class="brand-header">
-        <img src="/assets/voltra-mini.jpg" alt="Voltra Mini" class="bot-avatar" onerror="this.style.display='none'; document.getElementById('fallbackAvatar').style.display='grid';">
-        <div id="fallbackAvatar" class="bot-avatar-fallback" style="display: none;">⚡</div>
-        <div class="title">
-          <h1>Voltra Mini</h1>
-          <p>Next-Gen Modular WhatsApp MD Bot</p>
+        <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="brand-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'36\' height=\'36\'><rect width=\'36\' height=\'36\' fill=\'%232563eb\'/><text x=\'18\' y=\'24\' font-size=\'18\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
+        <div class="brand-title">
+          <h2>Voltra MD</h2>
+          <p>Control Center</p>
         </div>
       </div>
+      <nav>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#/home" id="nav-home" class="active"><i data-lucide="layout-dashboard"></i> Home Dashboard</a></li>
+          <li class="nav-item"><a href="#/pairing" id="nav-pairing"><i data-lucide="link"></i> Pair Device</a></li>
+          <li class="nav-item"><a href="#/reactions" id="nav-reactions"><i data-lucide="flame"></i> Channel Reactions</a></li>
+          <li class="nav-item"><a href="#/poll" id="nav-poll"><i data-lucide="bar-chart-2"></i> Poll Voting</a></li>
+          <li class="nav-item"><a href="#/settings" id="nav-settings"><i data-lucide="settings"></i> Settings Manager</a></li>
+          <li class="nav-item"><a href="#/docs" id="nav-docs"><i data-lucide="file-text"></i> REST API Docs</a></li>
+          <li class="nav-item"><a href="#/admin" id="nav-admin"><i data-lucide="shield"></i> Admin Portal</a></li>
+        </ul>
+      </nav>
+    </aside>
 
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span class="badge" id="statusBadge">
-          <span class="badge-dot"></span>
-          <span id="statusText">System Ready</span>
-        </span>
-      </div>
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- 1. Home View -->
+      <section id="view-home" class="view-card active">
+        <div class="hero-banner">
+          <img src="/assets/voltra-mini.jpg" alt="Voltra MD" class="hero-avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'><rect width=\'56\' height=\'56\' fill=\'%232563eb\'/><text x=\'28\' y=\'36\' font-size=\'24\' fill=\'white\' text-anchor=\'middle\'>⚡</text></svg>'">
+          <div class="hero-text">
+            <h3>Voltra MD Engine</h3>
+            <p>Tactile Control Center & Bot Management System</p>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label for="phone">Phone Number</label>
-        <input id="phone" type="tel" inputmode="numeric" placeholder="263786624966">
-        <p class="instructions">Include country code without +, spaces, or dashes (e.g., 263786624966).</p>
-      </div>
-
-      <div style="margin-top: 18px;">
-        <button id="pairBtn">
-          <span class="spinner" id="btnSpinner"></span>
-          <span id="btnText">Get Pairing Code</span>
-        </button>
-      </div>
-
-      <div id="result" class="result">
-        <p style="font-size: 12px; color: var(--text-muted);" id="pairLabel">Your WhatsApp Pairing Code</p>
-        <div id="codeDisplay" class="code-display">--------</div>
-        <button id="copyBtn" class="btn-secondary">Copy Code</button>
-        <p class="instructions">
-          Open WhatsApp → Linked Devices → Link a Device → Link with Phone Number instead.
-        </p>
-      </div>
-
-      <div id="msg" class="msg"></div>
-    </main>
-
-    <!-- Active Sessions Summary (Privacy Preserving - No Phone Numbers Shown) -->
-    <div class="card">
-      <div class="sessions-summary">
         <div>
-          <div style="font-size: 14px; font-weight: 600; color: #fff;">Active Connected Sessions</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Encrypted & Isolated Baileys MD Sockets</div>
+          <h2 class="view-title"><i data-lucide="activity"></i> System Monitor</h2>
+          <p class="view-desc">Live performance metrics and active session count.</p>
         </div>
-        <div class="sessions-count" id="sessionCount">0</div>
-      </div>
-    </div>
 
-    <!-- Bot Documentation & Features Section -->
-    <div class="card doc-section">
-      <div class="doc-title">
-        <span>📖 Bot Features & System Capabilities</span>
-      </div>
-      <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-        Voltra Mini is a high-performance WhatsApp MD bot built with modular command routing, dynamic presence simulation, persistent MongoDB multi-session auth, and instant message handling.
-      </p>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-val" id="activeSessionsVal">0</div>
+            <div class="metric-lbl">Active Connected Sessions</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="uptimeVal">0s</div>
+            <div class="metric-lbl">Server Process Uptime</div>
+          </div>
+        </div>
 
-      <div class="doc-grid">
-        <div class="doc-card">
-          <h4>⚡ General Commands</h4>
-          <p>System metrics, response latency, dynamic menu, and bot info.</p>
-          <div class="cmd-badge">.menu .ping .alive .system</div>
+        <div style="margin-top: 6px;">
+          <h2 class="view-title"><i data-lucide="navigation"></i> Quick Navigation</h2>
+          <div class="quick-nav-grid">
+            <a href="#/pairing" style="text-decoration:none;"><button class="quick-nav-btn"><i data-lucide="link"></i> Pair Device</button></a>
+            <a href="#/reactions" style="text-decoration:none;"><button class="quick-nav-btn btn-secondary"><i data-lucide="flame"></i> Reactions</button></a>
+            <a href="#/settings" style="text-decoration:none;"><button class="quick-nav-btn btn-secondary"><i data-lucide="settings"></i> Settings</button></a>
+            <a href="#/docs" style="text-decoration:none;"><button class="quick-nav-btn btn-secondary"><i data-lucide="file-text"></i> API Docs</button></a>
+          </div>
         </div>
-        <div class="doc-card">
-          <h4>🎨 Media & Voice</h4>
-          <p>Create stickers from images/GIFs, TTS voice notes, and ViewOnce unwrapper.</p>
-          <div class="cmd-badge">.sticker .say .viewonce</div>
-        </div>
-        <div class="doc-card">
-          <h4>👥 Group Management</h4>
-          <p>Admin tools with permission checks, group tagall, and member moderation.</p>
-          <div class="cmd-badge">.tagall .admins .kick .promote</div>
-        </div>
-        <div class="doc-card">
-          <h4>🔒 Security & Privacy</h4>
-          <p>Session data encrypted and protected against unauthorized API exposure.</p>
-          <div class="cmd-badge">Zero Plain Credentials Exposed</div>
-        </div>
-      </div>
-    </div>
 
-    <footer>Voltra Mini Engine • Powered by Baileys MD & Node.js</footer>
+        <div style="margin-top: 6px;">
+          <h2 class="view-title"><i data-lucide="layers"></i> Bot Features Overview</h2>
+          <table class="feature-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Description</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Multi-Session Pairing</td>
+                <td>Pair multiple WhatsApp accounts via code or QR code.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+              <tr>
+                <td>MongoDB Persistence</td>
+                <td>Debounced auth state backups and auto-restoration.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+              <tr>
+                <td>Per-Session Settings</td>
+                <td>Custom prefix, multi-prefixes, bot name, anti-call per session.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+              <tr>
+                <td>Channel Auto-Reactions</td>
+                <td>Broadcast post reactions across active connected sessions.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+              <tr>
+                <td>Song & MP3 Downloader</td>
+                <td>Search and fetch YouTube audio streams into WhatsApp MP3 voice notes.</td>
+                <td><span style="color: var(--success); font-weight:700;">Active</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 2. Pairing View -->
+      <section id="view-pairing" class="view-card">
+        <div>
+          <h2 class="view-title"><i data-lucide="smartphone"></i> Pair New Device</h2>
+          <p class="view-desc">Generate an 8-character WhatsApp pairing code for your session.</p>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input id="phone" type="tel" placeholder="263786624966">
+        </div>
+        <div style="margin-top: 8px;">
+          <button id="pairBtn"><i data-lucide="key"></i> <span id="pairBtnText">Get Pairing Code</span></button>
+        </div>
+        <div id="result" style="display: none; margin-top: 8px;">
+          <div id="codeDisplay" class="code-display">--------</div>
+          <button id="copyBtn" class="btn-secondary"><i data-lucide="copy"></i> Copy Code</button>
+        </div>
+        <div id="pairMsg" class="msg"></div>
+      </section>
+
+      <!-- 3. Channel Reactions View -->
+      <section id="view-reactions" class="view-card">
+        <div>
+          <h2 class="view-title"><i data-lucide="smile"></i> Channel Post Reaction</h2>
+          <p class="view-desc">Broadcast emoji reactions to WhatsApp channel posts across active sessions.</p>
+        </div>
+        <div class="form-group">
+          <label for="reactUrl">Channel Post URL</label>
+          <input id="reactUrl" type="url" placeholder="https://whatsapp.com/channel/0029VaXXXXXX/101">
+        </div>
+        <div class="form-group">
+          <label for="reactEmoji">Emoji (Optional)</label>
+          <input id="reactEmoji" type="text" placeholder="🔥">
+        </div>
+        <div style="margin-top: 8px;">
+          <button id="reactBtn"><i data-lucide="send"></i> <span id="reactBtnText">Send Reactions</span></button>
+        </div>
+        <div id="reactMsg" class="msg"></div>
+      </section>
+
+      <!-- 4. Poll Voting View -->
+      <section id="view-poll" class="view-card">
+        <div>
+          <h2 class="view-title"><i data-lucide="check-square"></i> Channel Poll Voting</h2>
+          <p class="view-desc">Submit votes on WhatsApp channel poll posts.</p>
+        </div>
+        <div class="form-group">
+          <label for="pollUrl">Channel Poll URL</label>
+          <input id="pollUrl" type="url" placeholder="https://whatsapp.com/channel/0029Vb8VyAo/130">
+        </div>
+        <div class="form-group">
+          <label for="pollOption">Option Choice</label>
+          <input id="pollOption" type="text" placeholder="Option 1">
+        </div>
+        <div style="margin-top: 8px;">
+          <button id="pollBtn"><i data-lucide="vote"></i> <span id="pollBtnText">Submit Vote</span></button>
+        </div>
+        <div id="pollMsg" class="msg"></div>
+      </section>
+
+      <!-- 5. Settings Manager View -->
+      <section id="view-settings" class="view-card">
+        <div id="settingsAuthCard">
+          <h2 class="view-title"><i data-lucide="lock"></i> Session Settings Login</h2>
+          <p class="view-desc">Enter your phone number and unique 8-digit PIN password.</p>
+          <div class="form-group">
+            <label for="authPhone">Phone Number / Session ID</label>
+            <input id="authPhone" type="tel" placeholder="263786624966">
+          </div>
+          <div class="form-group">
+            <label for="authPin">8-Digit Session PIN Password</label>
+            <input id="authPin" type="password" maxlength="8" placeholder="12345678">
+          </div>
+          <div style="margin-top: 10px;">
+            <button id="loginSettingsBtn"><i data-lucide="key-round"></i> <span id="loginSettingsBtnText">Authenticate Session</span></button>
+          </div>
+          <div id="authMsg" class="msg"></div>
+        </div>
+
+        <div id="settingsPanelCard" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h2 class="view-title"><i data-lucide="sliders"></i> Per-Session Settings</h2>
+            <button id="logoutSettingsBtn" class="btn-secondary" style="width: auto; padding: 5px 10px; font-size: 11px;"><i data-lucide="log-out"></i> Lock</button>
+          </div>
+          <div class="form-group">
+            <label for="setBotName">Bot Name</label>
+            <input id="setBotName" type="text" placeholder="Voltra MD">
+          </div>
+          <div class="form-group">
+            <label for="setPrefix">Custom Prefix / Multi-Prefixes (e.g. # or #,$)</label>
+            <input id="setPrefix" type="text" placeholder=".,#,$,%">
+          </div>
+          <div class="form-group">
+            <label for="setMode">Bot Operating Mode</label>
+            <select id="setMode">
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+              <option value="self">Self Only</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="setAntiCall">Anti-Call Setting</label>
+            <select id="setAntiCall">
+              <option value="off">Off</option>
+              <option value="on">Reject Calls</option>
+              <option value="block">Reject & Block Caller</option>
+            </select>
+          </div>
+          <div style="margin-top: 10px;">
+            <button id="saveSettingsBtn"><i data-lucide="save"></i> <span id="saveSettingsBtnText">Save Session Settings</span></button>
+          </div>
+          <div id="settingsMsg" class="msg"></div>
+        </div>
+      </section>
+
+      <!-- 6. API Docs View -->
+      <section id="view-docs" class="view-card">
+        <div>
+          <h2 class="view-title"><i data-lucide="code"></i> Complete REST API Documentation</h2>
+          <p class="view-desc">Integrate pairing, QR codes, channel services, per-session settings, and admin APIs.</p>
+        </div>
+
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST</span>
+            <span class="api-path">/api/v1/pair/code</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted);">Request an 8-character pairing code for device linking.</p>
+          <div class="code-block">curl -X POST https://your-domain.com/api/v1/pair/code \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "263786624966"}'</div>
+        </div>
+
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST / GET</span>
+            <span class="api-path">/api/v1/pair/qrcode</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted);">Initialize QR pairing session and retrieve QR code string.</p>
+          <div class="code-block">curl -X POST https://your-domain.com/api/v1/pair/qrcode \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "263786624966"}'</div>
+        </div>
+
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST / GET</span>
+            <span class="api-path">/api/v1/settings</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted);">Query or update all per-session settings (`botName`, `prefix`, `mode`, `antiCall`) in one unified call.</p>
+          <div class="code-block">curl -X POST "https://your-domain.com/api/v1/settings?session=263786624966&pin=12345678" \
+  -H "Content-Type: application/json" \
+  -d '{"botName": "Voltra MD", "prefix": ".,#,$,%", "mode": "public", "antiCall": "on"}'</div>
+        </div>
+
+        <div class="api-card">
+          <div class="api-header">
+            <span class="method-tag post">POST</span>
+            <span class="api-path">/api/v1/services/chreact</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted);">Broadcast post reactions across connected sessions.</p>
+          <div class="code-block">curl -X POST https://your-domain.com/api/v1/services/chreact \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://whatsapp.com/channel/0029VaXXXX/101", "emoji": "🔥"}'</div>
+        </div>
+      </section>
+
+      <!-- 7. Admin Portal View -->
+      <section id="view-admin" class="view-card">
+        <div id="adminAuthCard">
+          <h2 class="view-title"><i data-lucide="shield-alert"></i> Admin Portal Login</h2>
+          <p class="view-desc">Enter admin management username and password.</p>
+          <div class="form-group">
+            <label for="adminUser">Username</label>
+            <input id="adminUser" type="text" placeholder="voltra">
+          </div>
+          <div class="form-group">
+            <label for="adminPass">Password</label>
+            <input id="adminPass" type="password" placeholder="••••••••">
+          </div>
+          <div style="margin-top: 10px;">
+            <button id="loginAdminBtn"><i data-lucide="shield-check"></i> <span id="loginAdminBtnText">Login to Admin Portal</span></button>
+          </div>
+          <div id="adminAuthMsg" class="msg"></div>
+        </div>
+
+        <div id="adminPanelCard" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h2 class="view-title"><i data-lucide="server"></i> Session Purge & Monitor</h2>
+            <button id="logoutAdminBtn" class="btn-secondary" style="width: auto; padding: 5px 10px; font-size: 11px;"><i data-lucide="log-out"></i> Logout</button>
+          </div>
+          <div id="sessionListContainer">
+            <p style="font-size: 12px; color: var(--text-muted);">Loading active sessions...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. Custom 404 View -->
+      <section id="view-404" class="view-card">
+        <div style="text-align: center; padding: 16px 0;">
+          <div style="font-size: 40px; margin-bottom: 6px;">⚠️ 404</div>
+          <h2 class="view-title">Page Not Found</h2>
+          <p class="view-desc" style="margin-top: 4px;">The route you are trying to access does not exist.</p>
+          <div style="margin-top: 16px; max-width: 180px; margin-left: auto; margin-right: auto;">
+            <a href="#/home" style="text-decoration: none;"><button>Return to Home</button></a>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
 <script>
-const phoneInput = document.getElementById("phone");
-const pairBtn = document.getElementById("pairBtn");
-const btnSpinner = document.getElementById("btnSpinner");
-const btnText = document.getElementById("btnText");
-const resultBox = document.getElementById("result");
-const codeDisplay = document.getElementById("codeDisplay");
-const statusBadge = document.getElementById("statusBadge");
-const statusText = document.getElementById("statusText");
-const msg = document.getElementById("msg");
-const sessionCount = document.getElementById("sessionCount");
+// Hamburger Sidebar
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const appSidebar = document.getElementById("appSidebar");
+const sidebarOverlay = document.getElementById("sidebarOverlay");
 
-function setStatus(text, state = "disconnected") {
-  statusText.textContent = text;
-  statusBadge.className = "badge " + state;
+function toggleSidebar() {
+  appSidebar.classList.toggle("open");
+  sidebarOverlay.classList.toggle("active");
 }
 
-async function loadSessions() {
+if (hamburgerBtn) hamburgerBtn.addEventListener("click", toggleSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener("click", toggleSidebar);
+
+function initIcons() {
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+}
+
+// Router
+const ROUTES = ["home", "pairing", "reactions", "poll", "settings", "docs", "admin"];
+
+function renderRoute() {
+  const hash = window.location.hash.replace("#/", "").replace("#", "").trim();
+  const route = hash || "home";
+
+  document.querySelectorAll(".view-card").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".nav-item a").forEach(el => el.classList.remove("active"));
+
+  if (ROUTES.includes(route)) {
+    const targetView = document.getElementById(`view-${route}`);
+    if (targetView) targetView.classList.add("active");
+
+    const navLink = document.getElementById(`nav-${route}`);
+    if (navLink) navLink.classList.add("active");
+
+    if (route === "admin") {
+      checkAdminSessionState();
+    }
+  } else {
+    const view404 = document.getElementById("view-404");
+    if (view404) view404.classList.add("active");
+  }
+
+  appSidebar.classList.remove("open");
+  sidebarOverlay.classList.remove("active");
+  initIcons();
+}
+
+window.addEventListener("hashchange", renderRoute);
+window.addEventListener("load", () => {
+  renderRoute();
+  initIcons();
+});
+
+async function loadStats() {
   try {
-    const res = await fetch("/api/sessions");
+    const res = await fetch("/api/health");
     const data = await res.json();
     if (data.ok) {
-      sessionCount.textContent = data.count || "0";
+      document.getElementById("activeSessionsVal").textContent = data.sessions || 0;
+      document.getElementById("uptimeVal").textContent = `${data.uptime || 0}s`;
     }
   } catch {}
 }
 
-pairBtn.addEventListener("click", async () => {
-  const phone = phoneInput.value.trim().replace(/\D/g, "");
-  msg.textContent = "";
-  msg.className = "msg";
+// Pairing Handler with Spinner
+document.getElementById("pairBtn").addEventListener("click", async () => {
+  const phone = document.getElementById("phone").value.trim().replace(/\D/g, "");
+  const pairMsg = document.getElementById("pairMsg");
+  const pairBtnText = document.getElementById("pairBtnText");
+  pairMsg.textContent = "";
 
-  if (!phone || phone.length < 7) {
-    msg.textContent = "Please enter a valid phone number with country code.";
-    msg.className = "msg error";
+  if (!phone) {
+    pairMsg.textContent = "Please enter a valid phone number.";
+    pairMsg.className = "msg error";
     return;
   }
 
-  pairBtn.disabled = true;
-  btnSpinner.style.display = "inline-block";
-  btnText.textContent = "Requesting Code...";
-  setStatus("Generating Code...", "pairing");
+  pairBtnText.innerHTML = `<span class="spinner"></span> Generating...`;
 
   try {
-    const res = await fetch("/api/pair", {
+    const res = await fetch("/api/v1/pair/code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone })
     });
-
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error(data.error || "Pairing failed.");
 
-    resultBox.style.display = "block";
+    document.getElementById("result").style.display = "block";
     const raw = data.code || "";
-    if (raw === "ALREADY_LINKED") {
-      codeDisplay.textContent = "LINKED";
-      document.getElementById("pairLabel").textContent = "Account Status";
-      setStatus("Connected", "connected");
-    } else {
-      codeDisplay.textContent = raw.length === 8 ? raw.slice(0, 4) + "-" + raw.slice(4) : raw;
-      document.getElementById("pairLabel").textContent = "Your WhatsApp Pairing Code";
-      setStatus("Waiting for WhatsApp Pairing...", "pairing");
-    }
-
-    await loadSessions();
+    document.getElementById("codeDisplay").textContent = raw.length === 8 ? raw.slice(0, 4) + "-" + raw.slice(4) : raw;
   } catch (err) {
-    msg.textContent = err.message;
-    msg.className = "msg error";
-    setStatus("Error", "disconnected");
-    resultBox.style.display = "none";
+    pairMsg.textContent = err.message;
+    pairMsg.className = "msg error";
   } finally {
-    pairBtn.disabled = false;
-    btnSpinner.style.display = "none";
-    btnText.textContent = "Get Pairing Code";
+    pairBtnText.textContent = "Get Pairing Code";
   }
 });
 
 document.getElementById("copyBtn").addEventListener("click", async () => {
-  const code = codeDisplay.textContent.replace("-", "");
+  const code = document.getElementById("codeDisplay").textContent.replace("-", "");
   await navigator.clipboard.writeText(code);
   const btn = document.getElementById("copyBtn");
-  btn.textContent = "Copied!";
-  setTimeout(() => btn.textContent = "Copy Code", 1500);
+  btn.innerHTML = `<i data-lucide="check"></i> Copied!`;
+  initIcons();
+  setTimeout(() => {
+    btn.innerHTML = `<i data-lucide="copy"></i> Copy Code`;
+    initIcons();
+  }, 1500);
 });
 
-loadSessions();
-setInterval(loadSessions, 10000);
+// Settings Management with Spinner
+let authenticatedSession = null;
+let authenticatedPin = null;
+
+document.getElementById("loginSettingsBtn").addEventListener("click", async () => {
+  const number = document.getElementById("authPhone").value.trim().replace(/\D/g, "");
+  const password = document.getElementById("authPin").value.trim();
+  const authMsg = document.getElementById("authMsg");
+  const btnText = document.getElementById("loginSettingsBtnText");
+  authMsg.textContent = "";
+
+  if (!number || !password) {
+    authMsg.textContent = "Please enter phone number and 8-digit PIN password.";
+    authMsg.className = "msg error";
+    return;
+  }
+
+  btnText.innerHTML = `<span class="spinner"></span> Verifying...`;
+
+  try {
+    const res = await fetch(`/api/v1/settings?number=${number}&password=${password}`);
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Authentication failed.");
+
+    authenticatedSession = number;
+    authenticatedPin = password;
+
+    document.getElementById("settingsAuthCard").style.display = "none";
+    document.getElementById("settingsPanelCard").style.display = "block";
+
+    if (data.settings) {
+      document.getElementById("setBotName").value = data.settings.botName || "Voltra MD";
+      document.getElementById("setPrefix").value = data.settings.prefix || ".";
+      document.getElementById("setMode").value = data.settings.mode || "public";
+      document.getElementById("setAntiCall").value = data.settings.antiCall || "off";
+    }
+  } catch (err) {
+    authMsg.textContent = err.message;
+    authMsg.className = "msg error";
+  } finally {
+    btnText.textContent = "Authenticate Session";
+  }
+});
+
+document.getElementById("logoutSettingsBtn").addEventListener("click", () => {
+  authenticatedSession = null;
+  authenticatedPin = null;
+  document.getElementById("settingsAuthCard").style.display = "block";
+  document.getElementById("settingsPanelCard").style.display = "none";
+});
+
+document.getElementById("saveSettingsBtn").addEventListener("click", async () => {
+  const botName = document.getElementById("setBotName").value.trim();
+  const prefix = document.getElementById("setPrefix").value.trim();
+  const mode = document.getElementById("setMode").value;
+  const antiCall = document.getElementById("setAntiCall").value;
+  const settingsMsg = document.getElementById("settingsMsg");
+  const btnText = document.getElementById("saveSettingsBtnText");
+  settingsMsg.textContent = "";
+
+  btnText.innerHTML = `<span class="spinner"></span> Saving...`;
+
+  try {
+    const res = await fetch(`/api/v1/settings?session=${authenticatedSession}&pin=${authenticatedPin}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ botName, prefix, mode, antiCall })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Save failed.");
+
+    settingsMsg.textContent = "Session settings saved & synced with WhatsApp ✓";
+    settingsMsg.className = "msg success";
+  } catch (err) {
+    settingsMsg.textContent = err.message;
+    settingsMsg.className = "msg error";
+  } finally {
+    btnText.textContent = "Save Session Settings";
+  }
+});
+
+// Persistent Admin Login Cache (48 hours = 172,800,000 ms)
+const ADMIN_CACHE_KEY = "voltra_admin_token";
+const ADMIN_CACHE_EXPIRY = "voltra_admin_expiry";
+const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
+
+function getCachedAdminToken() {
+  const token = localStorage.getItem(ADMIN_CACHE_KEY);
+  const expiry = parseInt(localStorage.getItem(ADMIN_CACHE_EXPIRY) || "0");
+  if (token && expiry && Date.now() < expiry) {
+    return token;
+  }
+  localStorage.removeItem(ADMIN_CACHE_KEY);
+  localStorage.removeItem(ADMIN_CACHE_EXPIRY);
+  return null;
+}
+
+let adminToken = getCachedAdminToken();
+
+function checkAdminSessionState() {
+  const cached = getCachedAdminToken();
+  if (cached) {
+    adminToken = cached;
+    document.getElementById("adminAuthCard").style.display = "none";
+    document.getElementById("adminPanelCard").style.display = "block";
+    loadAdminSessions();
+  }
+}
+
+document.getElementById("loginAdminBtn").addEventListener("click", async () => {
+  const username = document.getElementById("adminUser").value.trim();
+  const password = document.getElementById("adminPass").value.trim();
+  const msg = document.getElementById("adminAuthMsg");
+  const btnText = document.getElementById("loginAdminBtnText");
+  msg.textContent = "";
+
+  btnText.innerHTML = `<span class="spinner"></span> Logging in...`;
+
+  try {
+    const res = await fetch("/api/v1/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Admin authentication failed.");
+
+    adminToken = data.adminToken;
+    const expiryTime = Date.now() + FORTY_EIGHT_HOURS_MS;
+    localStorage.setItem(ADMIN_CACHE_KEY, adminToken);
+    localStorage.setItem(ADMIN_CACHE_EXPIRY, expiryTime.toString());
+
+    document.getElementById("adminAuthCard").style.display = "none";
+    document.getElementById("adminPanelCard").style.display = "block";
+
+    loadAdminSessions();
+  } catch (err) {
+    msg.textContent = err.message;
+    msg.className = "msg error";
+  } finally {
+    btnText.textContent = "Login to Admin Portal";
+  }
+});
+
+document.getElementById("logoutAdminBtn").addEventListener("click", () => {
+  adminToken = null;
+  localStorage.removeItem(ADMIN_CACHE_KEY);
+  localStorage.removeItem(ADMIN_CACHE_EXPIRY);
+  document.getElementById("adminAuthCard").style.display = "block";
+  document.getElementById("adminPanelCard").style.display = "none";
+});
+
+async function loadAdminSessions() {
+  if (!adminToken) return;
+  const container = document.getElementById("sessionListContainer");
+
+  try {
+    const res = await fetch("/api/v1/admin/sessions", {
+      headers: { "Authorization": `Bearer ${adminToken}` }
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "Failed to load sessions.");
+
+    if (!data.sessions || data.sessions.length === 0) {
+      container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No active sessions found.</p>`;
+      return;
+    }
+
+    container.innerHTML = data.sessions.map(s => `
+      <div class="session-item">
+        <div>
+          <div style="font-weight: 800; font-size: 13px; color: #fff;">${s.sessionId}</div>
+          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Phone: +${s.phone || 'N/A'} • Status: <span style="color: #60a5fa;">${s.status}</span></div>
+        </div>
+        <button class="btn-danger" style="width: auto; padding: 5px 10px; font-size: 11px;" onclick="deleteAdminSession('${s.sessionId}')">Purge & Delete</button>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<p style="font-size: 12px; color: var(--danger);">${err.message}</p>`;
+  }
+}
+
+async function deleteAdminSession(sessionId) {
+  if (!confirm(`Are you sure you want to permanently delete session '${sessionId}'?`)) return;
+
+  try {
+    const res = await fetch(`/api/v1/admin/sessions/${sessionId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${adminToken}` }
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "Failed to delete session.");
+
+    alert(data.message || "Session deleted.");
+    loadAdminSessions();
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+}
+
+loadStats();
+setInterval(loadStats, 10000);
 </script>
 </body>
 </html>
